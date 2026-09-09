@@ -57,6 +57,17 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  assets:
+    - assets/imgs/
+
+  fonts:
+    - family: Rubik
+      fonts:
+        - asset: assets/fonts/Rubik-Regular.ttf
+    - family: Sixtyfour
+      fonts:
+        - asset: assets/fonts/Sixtyfour-Regular.ttf
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
