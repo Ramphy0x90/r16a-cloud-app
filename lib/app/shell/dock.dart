@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'dock_destination.dart';
 
 /// Floating bottom dock — the native replacement for the web client's
 /// slide-in hamburger drawer (`nav-bar`).
 class Dock extends StatelessWidget {
-  const Dock({
-    super.key,
-    required this.currentIndex,
-    required this.onSelected,
-  });
+  const Dock({super.key, required this.currentIndex, required this.onSelected});
 
   final int currentIndex;
   final ValueChanged<int> onSelected;
@@ -61,6 +58,7 @@ class _DockItem extends StatelessWidget {
     required this.onTap,
   });
 
+  final double iconSize = 25;
   final DockDestination destination;
   final bool selected;
   final VoidCallback onTap;
@@ -87,10 +85,11 @@ class _DockItem extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                selected ? destination.activeIcon : destination.icon,
-                color: color,
-                size: 24,
+              SvgPicture.asset(
+                destination.iconAsset,
+                width: iconSize,
+                height: iconSize,
+                colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
               ),
               const SizedBox(height: 4),
               Text(

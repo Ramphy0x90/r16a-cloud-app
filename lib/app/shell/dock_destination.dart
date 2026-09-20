@@ -11,40 +11,34 @@ import '../../features/profile/presentation/profile_screen.dart';
 class DockDestination {
   const DockDestination({
     required this.label,
-    required this.icon,
-    required this.activeIcon,
+    required this.iconAsset,
     required this.screen,
   });
 
   final String label;
-  final IconData icon;
-  final IconData activeIcon;
+  final String iconAsset;
   final Widget screen;
 }
 
 const dockDestinations = <DockDestination>[
   DockDestination(
     label: 'Dashboard',
-    icon: Icons.grid_view_outlined,
-    activeIcon: Icons.grid_view_rounded,
+    iconAsset: 'assets/icons/home.svg',
     screen: DashboardScreen(),
   ),
   DockDestination(
     label: 'Files',
-    icon: Icons.cloud_outlined,
-    activeIcon: Icons.cloud_rounded,
+    iconAsset: 'assets/icons/cloud.svg',
     screen: FilesScreen(),
   ),
   DockDestination(
     label: 'Photos',
-    icon: Icons.photo_library_outlined,
-    activeIcon: Icons.photo_library_rounded,
+    iconAsset: 'assets/icons/photo.svg',
     screen: PhotosScreen(),
   ),
   DockDestination(
     label: 'Profile',
-    icon: Icons.person_outline_rounded,
-    activeIcon: Icons.person_rounded,
+    iconAsset: 'assets/icons/user-circle.svg',
     screen: ProfileScreen(),
   ),
 ];
