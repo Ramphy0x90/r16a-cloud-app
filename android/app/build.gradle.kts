@@ -23,6 +23,10 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // flutter_appauth: registers this app as the handler for the OIDC
+        // redirect URI `cloud.r16a.r16acloudapp:/oauth2redirect`.
+        manifestPlaceholders["appAuthRedirectScheme"] = "cloud.r16a.r16acloudapp"
     }
 
     buildTypes {
