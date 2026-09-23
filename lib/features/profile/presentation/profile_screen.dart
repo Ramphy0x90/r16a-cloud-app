@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_controller.dart';
+import 'profile_preferences_controller.dart';
 import 'widgets/profile_auth_card.dart';
 import 'widgets/profile_identity_card.dart';
 import 'widgets/profile_preferences_card.dart';
@@ -13,6 +14,9 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final preferences = ref.watch(profilePreferencesControllerProvider);
+    final preferencesController = ref.read(profilePreferencesControllerProvider.notifier);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListView(
@@ -23,10 +27,13 @@ class ProfileScreen extends ConsumerWidget {
             username: 'ramphy',
           ),
           const SizedBox(height: 16),
-          const ProfilePreferencesCard(
-            theme: 'Light',
-            defaultViewMode: 'Grid',
-            encryptFilesByDefault: false,
+          ProfilePreferencesCard(
+            theme: preferences.theme,
+            defaultViewMode: preferences.defaultViewMode,
+            encryptFilesByDefault: preferences.encryptFilesByDefault,
+            onThemeChanged: preferencesController.setTheme,
+            onDefaultViewModeChanged: preferencesController.setDefaultViewMode,
+            onEncryptFilesByDefaultChanged: preferencesController.setEncryptFilesByDefault,
           ),
           const SizedBox(height: 16),
           ProfileAuthCard(
