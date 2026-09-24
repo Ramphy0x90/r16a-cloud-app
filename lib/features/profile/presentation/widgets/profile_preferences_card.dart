@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/session/user_preferences.dart';
 import '../../../../core/widgets/option_picker_sheet.dart';
-import '../../domain/profile_preferences.dart';
 import 'profile_card.dart';
 
 /// Mirrors the web client's `.preferences-grid` section: default theme,
