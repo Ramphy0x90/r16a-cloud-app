@@ -7,7 +7,9 @@ import 'auth_state.dart';
 import 'oidc_service.dart';
 import 'token_store.dart';
 
-final oidcServiceProvider = Provider((ref) => OidcService(const FlutterAppAuth()));
+final oidcServiceProvider = Provider(
+  (ref) => OidcService(const FlutterAppAuth()),
+);
 
 /// Owns the app's session: restoring it on launch, driving interactive
 /// login/logout, and silently refreshing an expired access token.
@@ -28,39 +30,49 @@ class AuthController extends Notifier<AuthState> {
 
   Future<void> _restoreSession() async {
     try {
-      final tokens = await _tokenStore.read();
-      if (tokens == null) {
-        state = const AuthState(status: AuthStatus.unauthenticated);
-        return;
-      }
-
-      if (!tokens.isExpired) {
-        state = const AuthState(status: AuthStatus.authenticated);
-        return;
-      }
-
-      final refreshToken = tokens.refreshToken;
-      if (refreshToken == null) {
-        await _tokenStore.clear();
-        state = const AuthState(status: AuthStatus.unauthenticated);
-        return;
-      }
-
-      final refreshed = await _oidc.refresh(refreshToken);
-      if (refreshed == null) {
-        await _tokenStore.clear();
-        state = const AuthState(status: AuthStatus.unauthenticated);
-        return;
-      }
-
-      await _tokenStore.save(refreshed);
-      state = const AuthState(status: AuthStatus.authenticated);
+      final token = await getValidAccessToken();
+      state = AuthState(
+        status: token != null
+            ? AuthStatus.authenticated
+            : AuthStatus.unauthenticated,
+      );
     } catch (_) {
       // Secure storage unavailable/corrupt, refresh failed unexpectedly,
       // etc. — fail safe to the login screen rather than getting stuck on
       // the splash screen forever.
       state = const AuthState(status: AuthStatus.unauthenticated);
     }
+  }
+
+  /// Returns a non-expired access token, refreshing the stored one if
+  /// needed. Returns `null` (and drops to [AuthStatus.unauthenticated]) if
+  /// there's no session or the refresh token is gone/rejected.
+  ///
+  /// This is the single place that decides "is the session still good" —
+  /// used both at launch (`_restoreSession`) and by the network layer's
+  /// auth interceptor before every request.
+  Future<String?> getValidAccessToken() async {
+    final tokens = await _tokenStore.read();
+    if (tokens == null) return null;
+
+    if (!tokens.isExpired) return tokens.accessToken;
+
+    final refreshToken = tokens.refreshToken;
+    if (refreshToken == null) {
+      await _tokenStore.clear();
+      state = const AuthState(status: AuthStatus.unauthenticated);
+      return null;
+    }
+
+    final refreshed = await _oidc.refresh(refreshToken);
+    if (refreshed == null) {
+      await _tokenStore.clear();
+      state = const AuthState(status: AuthStatus.unauthenticated);
+      return null;
+    }
+
+    await _tokenStore.save(refreshed);
+    return refreshed.accessToken;
   }
 
   Future<void> login() async {
@@ -92,4 +104,6 @@ class AuthController extends Notifier<AuthState> {
   }
 }
 
-final authControllerProvider = NotifierProvider<AuthController, AuthState>(AuthController.new);
+final authControllerProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);

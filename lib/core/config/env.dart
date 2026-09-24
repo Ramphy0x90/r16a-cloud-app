@@ -1,3 +1,7 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 /// Build-time configuration, all overridable via `--dart-define`.
 ///
 /// Defaults point at the local dev stack (`r16a-cloud` backend +
@@ -6,10 +10,25 @@
 ///
 /// ```
 /// flutter run --dart-define=OIDC_ISSUER=https://auth.r16a.cloud/application/o/<prod-slug>/ \
-///   --dart-define=OIDC_CLIENT_ID=<prod-client-id>
+///   --dart-define=OIDC_CLIENT_ID=<prod-client-id> \
+///   --dart-define=API_BASE_URL=https://cloud.r16a.cloud/api
 /// ```
 class Env {
   const Env._();
+
+  /// The `r16a-cloud` backend's API root — mirrors `environment.apiUrl` on
+  /// the web client. The Android emulator can't reach the host's
+  /// `localhost` (it's a separate virtual device), so it's routed through
+  /// the emulator's `10.0.2.2` host alias instead; every other target
+  /// (iOS simulator, a real device once `API_BASE_URL` is set explicitly)
+  /// uses `localhost`.
+  static String get apiBaseUrl {
+    const override = String.fromEnvironment('API_BASE_URL');
+    if (override.isNotEmpty) return override;
+
+    final host = (!kIsWeb && Platform.isAndroid) ? '10.0.2.2' : 'localhost';
+    return 'http://$host:8080/api';
+  }
 
   /// Authentik issuer for this app's OIDC provider (trailing slash matters —
   /// Authentik's discovery document lives at `<issuer>/.well-known/...`).
