@@ -45,40 +45,52 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = _placeholderData;
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
-      body: ListView(
+      // The 120 bottom inset clears the floating dock for the whole
+      // column — including the recent-files box below — not just its
+      // scrolled content, so the box's rounded background stops above the
+      // dock instead of extending behind it.
+      body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-        children: [
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: 1.35,
-            children: [
-              for (final spec in dashboardMetricSpecs)
-                MetricCard(spec: spec, metrics: data.metrics),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var row = 0; row < dashboardMetricSpecs.length; row += 2) ...[
+              if (row > 0) const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: MetricCard(spec: dashboardMetricSpecs[row], metrics: data.metrics),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: MetricCard(spec: dashboardMetricSpecs[row + 1], metrics: data.metrics),
+                  ),
+                ],
+              ),
             ],
-          ),
-          const SizedBox(height: 24),
-          Text('Recent files', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 24),
+            Text('Recent files', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: scheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+                  children: [
+                    for (final file in data.recentFiles) RecentFileTile(file: file),
+                  ],
+                ),
+              ),
             ),
-            child: Column(
-              children: [
-                for (final file in data.recentFiles) RecentFileTile(file: file),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
