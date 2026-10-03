@@ -35,11 +35,11 @@ abstract final class AppLogger {
   static void _logToConsole(Object error, StackTrace? stack, {String? reason}) {
     developer.log(
       reason ?? 'Error',
-      name: 'domovoy',
+      name: 'domovoi',
       error: error,
       stackTrace: stack,
       level: 1000, // SEVERE
     );
-    if (kDebugMode) debugPrint('[domovoy] ${reason ?? 'Error'}: $error');
+    if (kDebugMode) debugPrint('[domovoi] ${reason ?? 'Error'}: $error');
   }
 }

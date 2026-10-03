@@ -33,7 +33,7 @@ void main() {
     // once its async work settles.
     await tester.pumpAndSettle();
 
-    expect(find.text('Domovoy'), findsOneWidget);
+    expect(find.text('Domovoi'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
 
     // The authenticated shell (dock + tabs) must not be reachable yet.

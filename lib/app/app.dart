@@ -41,7 +41,7 @@ class R16aCloudApp extends ConsumerWidget {
         : ThemeMode.system;
 
     return MaterialApp(
-      title: 'Domovoy',
+      title: 'Domovoi',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

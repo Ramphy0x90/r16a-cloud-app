@@ -78,7 +78,7 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   `/fs/shared-with-me`), `PhotosController` (year sections, lazy pages), grid with placeholder tiles that
   request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Viewer has
   Download + "Share via…" (step 19). Refreshes itself (debounced) on `mediaRevisionProvider` bumps.
-- Phase 9 (partial): user-visible name **Domovoy** (internal name stays R16a Cloud); `AppLogger`
+- Phase 9 (partial): user-visible name **Domovoi** (internal name stays R16a Cloud); `AppLogger`
   (core/logging) catches all errors, `AppLogger.reporter` is the hook for a crash service; offline
   detection from real traffic (`NetworkStatusInterceptor`) + banner above the dock, Files serves stored
   listings of any age while offline; Profile "Clear cache" (`clearCachesProvider`, extended in
