@@ -1,0 +1,5 @@
+{
+  "API_BASE_URL": "https://cloud.r16a.cloud/api",
+  "OIDC_ISSUER": "https://auth.r16a.cloud/application/o/r16a-cloud/",
+  "OIDC_CLIENT_ID": "qD3L1sLMYLDZwUqwxGm0kUJ6DZMcX2lUud6Fm0xp"
+}

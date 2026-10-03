@@ -1,17 +1,16 @@
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kReleaseMode;
 
 /// Build-time configuration, all overridable via `--dart-define`.
 ///
 /// Defaults point at the local dev stack (`r16a-cloud` backend +
 /// `r16a-cloud-local` Authentik provider) — the same pair the web client's
-/// `environment.ts` (dev) talks to. Override for a prod build, e.g.:
+/// `environment.ts` (dev) talks to. Prod values live in `config/prod.json`
+/// (mirrors `environment.prod.ts`):
 ///
 /// ```
-/// flutter run --dart-define=OIDC_ISSUER=https://auth.r16a.cloud/application/o/<prod-slug>/ \
-///   --dart-define=OIDC_CLIENT_ID=<prod-client-id> \
-///   --dart-define=API_BASE_URL=https://cloud.r16a.cloud/api
+/// flutter build apk --release --dart-define-from-file=config/prod.json
 /// ```
 class Env {
   const Env._();
@@ -52,4 +51,21 @@ class Env {
   static const oidcRedirectUri = 'cloud.r16a.r16acloudapp:/oauth2redirect';
 
   static const oidcScopes = ['openid', 'profile', 'email', 'offline_access'];
+
+  /// Fails fast when a release build would fall back to the local dev
+  /// defaults (a forgotten `--dart-define-from-file`), instead of shipping
+  /// an app that silently talks to `http://localhost`.
+  static void checkReleaseConfig() {
+    if (!kReleaseMode) return;
+    const configured =
+        bool.hasEnvironment('API_BASE_URL') &&
+        bool.hasEnvironment('OIDC_ISSUER') &&
+        bool.hasEnvironment('OIDC_CLIENT_ID');
+    if (!configured || !apiBaseUrl.startsWith('https://')) {
+      throw StateError(
+        'Release build without prod config. Build with '
+        '--dart-define-from-file=config/prod.json (API must be https).',
+      );
+    }
+  }
 }

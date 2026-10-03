@@ -26,10 +26,10 @@ dart format lib test
 
 # Run against local backend (default: http://localhost:8080/api, Android emulator -> 10.0.2.2)
 flutter run
-# Run against prod
-flutter run --dart-define=API_BASE_URL=https://cloud.r16a.cloud/api \
-  --dart-define=OIDC_ISSUER=https://auth.r16a.cloud/application/o/<prod-slug>/ \
-  --dart-define=OIDC_CLIENT_ID=<prod-client-id>
+# Run / build against prod (values mirror the web's environment.prod.ts)
+flutter run --dart-define-from-file=config/prod.json
+flutter build apk --release --dart-define-from-file=config/prod.json
+# Release builds without these defines throw at startup (Env.checkReleaseConfig).
 ```
 
 Local backend: `cd ../r16a-cloud && docker compose up` (app + MySQL + Redis on :8080).
