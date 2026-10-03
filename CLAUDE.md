@@ -94,6 +94,7 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   Launcher icon + native splash generated from the logo SVGs (see Commands).
 - Account deletion: Profile → "Delete account" (typed confirmation) → `DELETE /api/user/me` (backend
   `AccountDeletionService` erases files, storage, thumbnails, events, shares, uploads, user) → logout.
+  The web client has the same flow (Profile → Delete account).
   Sign-up is invite-only via Authentik; the Authentik identity is removed manually by an admin.
 - "Encrypt files by default" was removed everywhere (it never encrypted anything). Don't reintroduce
   encryption claims without real encryption.
