@@ -98,6 +98,10 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   Sign-up is invite-only via Authentik; the Authentik identity is removed manually by an admin.
 - "Encrypt files by default" was removed everywhere (it never encrypted anything). Don't reintroduce
   encryption claims without real encryption.
+- Privacy policy: web client page `/privacy` (public, marked draft until legally reviewed). App links to
+  `Env.privacyPolicyUrl` (https://domovoi.cloud/privacy) from login + Profile via `url_launcher`.
+  Keep it true: domovoi.cloud is behind Cloudflare; cloud.r16a.cloud (the app's API) and auth.r16a.cloud
+  are not. Backend purges file events after 90 days (`FileEventRetentionTask`).
   Deferred by user: crash-reporting service.
 
 Update this section when a phase step lands.

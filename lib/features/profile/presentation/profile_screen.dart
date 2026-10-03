@@ -6,6 +6,7 @@ import '../../../core/cache/clear_caches.dart';
 import '../../../core/session/current_user.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
+import '../../../core/widgets/privacy_policy_link.dart';
 import '../../../core/widgets/status_message.dart';
 import 'profile_save_controller.dart';
 import 'widgets/profile_auth_card.dart';
@@ -96,6 +97,8 @@ class _ProfileContent extends ConsumerWidget {
             await ref.read(authControllerProvider.notifier).logout();
           },
         ),
+        const SizedBox(height: 8),
+        const Center(child: PrivacyPolicyLink()),
       ],
     );
   }

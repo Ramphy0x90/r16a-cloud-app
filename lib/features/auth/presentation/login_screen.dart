@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/auth/auth_controller.dart';
 import '../../../core/auth/auth_state.dart';
 import '../../../core/widgets/app_logo.dart';
+import '../../../core/widgets/privacy_policy_link.dart';
 
 class LoginScreen extends ConsumerWidget {
   const LoginScreen({super.key});
@@ -57,6 +58,8 @@ class LoginScreen extends ConsumerWidget {
                         )
                       : const Text('Sign in'),
                 ),
+                const SizedBox(height: 24),
+                const PrivacyPolicyLink(),
               ],
             ),
           ),

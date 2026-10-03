@@ -11,7 +11,7 @@ import '../../features/files/fakes.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('core clearing drops thumbnails and opened-file copies', () async {
+  test('core clearing drops thumbnails and local file copies', () async {
     final media = FakeMediaApi()..thumbnailBytes = Uint8List.fromList([1]);
     final downloads = FakeFileDownloads();
     final container = ProviderContainer(
@@ -28,6 +28,6 @@ void main() {
 
     await thumbnails.get('a');
     expect(media.thumbnailCalls, hasLength(2));
-    expect(downloads.openedFilesCleared, 1);
+    expect(downloads.localCopiesCleared, 1);
   });
 }

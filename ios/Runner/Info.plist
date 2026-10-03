@@ -27,9 +27,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Domovoi uses the camera to take photos and videos to upload.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Domovoi uses the microphone to record sound for videos you upload.</string>
+	<string>Domovoi uses the camera to take photos to upload.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Domovoi uploads the photos and videos you choose from your library.</string>
 	<key>CFBundleURLTypes</key>

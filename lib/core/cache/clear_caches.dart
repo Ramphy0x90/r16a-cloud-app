@@ -12,11 +12,12 @@ final clearCachesProvider = Provider<Future<void> Function()>(
       () => clearCoreCaches(ref),
 );
 
-/// Thumbnails, decoded images and temporary copies of opened files.
+/// Thumbnails, decoded images and the app's own copies of files (opened
+/// files, iOS saved downloads).
 Future<void> clearCoreCaches(Ref ref) async {
   ref.read(thumbnailCacheProvider).clear();
   PaintingBinding.instance.imageCache
     ..clear()
     ..clearLiveImages();
-  await ref.read(fileDownloadsProvider).clearOpenedFiles();
+  await ref.read(fileDownloadsProvider).clearLocalCopies();
 }

@@ -245,10 +245,10 @@ class FakeFileDownloads extends FileDownloads {
 
   /// Result of [open]: whether an app could open the file.
   bool canOpen = true;
-  var openedFilesCleared = 0;
+  var localCopiesCleared = 0;
 
   @override
-  Future<void> clearOpenedFiles() async => openedFilesCleared++;
+  Future<void> clearLocalCopies() async => localCopiesCleared++;
 
   @override
   Future<String> fetchForOpening(

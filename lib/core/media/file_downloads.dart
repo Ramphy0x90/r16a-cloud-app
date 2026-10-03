@@ -164,14 +164,21 @@ class FileDownloads {
     return SavedDownload(path: shared, inDownloads: true);
   }
 
-  /// Deletes the temporary copies made by [fetchForOpening].
-  Future<void> clearOpenedFiles() async {
+  /// Deletes the app's own copies of files: temporary copies made by
+  /// [fetchForOpening], and saved downloads still inside the app (iOS keeps
+  /// them there after the share sheet; Android moves them to Downloads).
+  Future<void> clearLocalCopies() async {
+    await _deleteDir('open', BaseDirectory.temporary);
+    await _deleteDir('downloads', BaseDirectory.applicationSupport);
+  }
+
+  Future<void> _deleteDir(String directory, BaseDirectory base) async {
     try {
       final probe = await DownloadTask(
         url: 'https://localhost',
         filename: 'probe',
-        directory: 'open',
-        baseDirectory: BaseDirectory.temporary,
+        directory: directory,
+        baseDirectory: base,
       ).filePath();
       final dir = File(probe).parent;
       if (await dir.exists()) await dir.delete(recursive: true);

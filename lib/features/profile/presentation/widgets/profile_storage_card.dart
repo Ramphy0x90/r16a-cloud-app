@@ -43,8 +43,9 @@ class _ProfileStorageCardState extends State<ProfileStorageCard> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Saved folder listings, thumbnails and copies of opened files. '
-            'Your files in the cloud are not affected.',
+            'Saved folder listings, thumbnails and copies of files kept '
+            'inside the app. Your files in the cloud, and anything saved to '
+            'your Downloads folder, are not affected.',
             style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 16),

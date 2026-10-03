@@ -35,6 +35,7 @@ void main() {
 
     expect(find.text('Domovoi'), findsOneWidget);
     expect(find.text('Sign in'), findsOneWidget);
+    expect(find.text('Privacy policy'), findsOneWidget);
 
     // The authenticated shell (dock + tabs) must not be reachable yet.
     expect(find.text('Dashboard'), findsNothing);

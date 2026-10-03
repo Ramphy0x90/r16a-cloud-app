@@ -52,6 +52,13 @@ class Env {
 
   static const oidcScopes = ['openid', 'profile', 'email', 'offline_access'];
 
+  /// Public privacy policy (served by the web client at `/privacy`); the
+  /// app stores require it, and the app links to it.
+  static const privacyPolicyUrl = String.fromEnvironment(
+    'PRIVACY_POLICY_URL',
+    defaultValue: 'https://domovoi.cloud/privacy',
+  );
+
   /// Fails fast when a release build would fall back to the local dev
   /// defaults (a forgotten `--dart-define-from-file`), instead of shipping
   /// an app that silently talks to `http://localhost`.
