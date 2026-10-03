@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/file_item.dart';
-import 'file_type_icon.dart';
+import '../../../../core/media/widgets/file_type_icon.dart';
+import '../../../../core/model/file_item.dart';
 
 /// Actions offered on a long-pressed file.
 enum FileAction { open, download, select, rename, share, delete }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/auth_controller.dart';
 import '../core/auth/auth_state.dart';
+import '../core/media/media_providers.dart';
 import '../core/session/session_providers.dart';
 import '../core/session/user_preferences.dart';
 import '../features/auth/presentation/login_screen.dart';

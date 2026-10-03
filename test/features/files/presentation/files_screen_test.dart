@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/core/media/file_viewer_screen.dart';
+import 'package:r16a_cloud_app/core/media/media_providers.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_providers.dart';
-import 'package:r16a_cloud_app/features/files/presentation/file_viewer_screen.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_screen.dart';
 import 'package:r16a_cloud_app/features/files/presentation/widgets/file_grid_tile.dart';
 import 'package:r16a_cloud_app/features/files/presentation/widgets/file_list_tile.dart';
@@ -14,10 +15,12 @@ import '../fakes.dart';
 
 void main() {
   late FakeFilesApi api;
+  late FakeMediaApi media;
   late FakeFileDownloads downloads;
 
   setUp(() {
     api = FakeFilesApi();
+    media = FakeMediaApi();
     downloads = FakeFileDownloads();
   });
 
@@ -26,6 +29,7 @@ void main() {
       ProviderScope(
         overrides: [
           filesApiProvider.overrideWithValue(api),
+          mediaApiProvider.overrideWithValue(media),
           fileDownloadsProvider.overrideWithValue(downloads),
           sessionApiProvider.overrideWithValue(FakeSessionApi()),
         ],
@@ -128,7 +132,7 @@ void main() {
       fakeFile('doc', extension: 'pdf'),
     ]);
 
-    expect(api.thumbnailCalls.map((c) => c.$1), ['photo']);
+    expect(media.thumbnailCalls.map((c) => c.$1), ['photo']);
   });
 
   testWidgets('tapping an image opens the viewer; other files open outside', (
@@ -159,6 +163,6 @@ void main() {
     );
     expect(viewer.files.map((f) => f.id), ['a', 'b']);
     expect(viewer.initialIndex, 1);
-    expect(api.downloadCalls, ['b']);
+    expect(media.downloadCalls, ['b']);
   });
 }

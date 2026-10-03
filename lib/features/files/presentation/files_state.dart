@@ -1,5 +1,5 @@
+import '../../../core/model/file_item.dart';
 import '../../../core/session/user_preferences.dart';
-import '../domain/file_item.dart';
 import '../domain/file_sort.dart';
 
 /// The web toolbar's `filter-tabs`: "My files" | "Shared".

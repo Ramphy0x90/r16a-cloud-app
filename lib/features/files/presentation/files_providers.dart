@@ -1,17 +1,14 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/auth/auth_controller.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
 import '../../../core/session/user_summary.dart';
-import '../data/file_downloads.dart';
 import '../data/file_uploader.dart';
 import '../data/files_api.dart';
 import '../data/files_cache.dart';
 import '../data/listing_store.dart';
 import '../data/upload_source.dart';
-import '../data/thumbnail_cache.dart';
 import 'file_delta_sync.dart';
 import 'files_controller.dart';
 import 'files_state.dart';
@@ -49,11 +46,6 @@ final filesViewModeProvider = Provider.autoDispose<DefaultFileView>((ref) {
       DefaultFileView.grid;
 });
 
-/// App-wide like the web's root-provided `ImagePreviewService`.
-final thumbnailCacheProvider = Provider(
-  (ref) => ThumbnailCache(ref.watch(filesApiProvider)),
-);
-
 /// Users a file owned by the given owner id can be shared with — mirrors
 /// `loadShareCandidates()`: everyone except the caller and the owner.
 final shareCandidatesProvider = FutureProvider.autoDispose
@@ -76,15 +68,6 @@ final uploadPickerProvider =
     Provider<Future<List<UploadSource>> Function(UploadPick)>(
       (ref) => pickUploadSources,
     );
-
-/// Platform downloads; the bearer token for the zip endpoint comes from
-/// the auth controller, like every other authenticated call.
-final fileDownloadsProvider = Provider(
-  (ref) => FileDownloads(
-    ref.watch(filesApiProvider),
-    ref.read(authControllerProvider.notifier).getValidAccessToken,
-  ),
-);
 
 /// Lives with the Files screen (which keeps it watched) and stops with it.
 final fileDeltaSyncProvider = Provider.autoDispose((ref) {

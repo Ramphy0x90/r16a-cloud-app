@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/file_item.dart';
+import '../../../../core/model/file_item.dart';
 import 'file_list_tile.dart';
 
 /// List view sliver — mirrors `list-view` (`pages/files/list-view`),

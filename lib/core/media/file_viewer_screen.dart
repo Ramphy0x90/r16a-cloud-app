@@ -3,10 +3,10 @@ import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_view/photo_view.dart';
 
-import '../../../app/theme/app_colors.dart';
-import '../domain/file_item.dart';
-import 'file_images.dart';
-import 'files_providers.dart';
+import '../../app/theme/app_colors.dart';
+import '../model/file_item.dart';
+import 'media_images.dart';
+import 'media_providers.dart';
 
 /// Full-screen image viewer — the native take on the web's
 /// `image-preview-modal`: thumbnail / blurhash placeholder while the full
@@ -38,7 +38,7 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final api = ref.watch(filesApiProvider);
+    final api = ref.watch(mediaApiProvider);
     final thumbnails = ref.watch(thumbnailCacheProvider);
 
     return Scaffold(

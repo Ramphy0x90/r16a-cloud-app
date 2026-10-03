@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../core/media/file_downloads.dart';
+import '../../../core/media/file_opener.dart';
+import '../../../core/media/media_providers.dart';
+import '../../../core/model/file_item.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/text_input_dialog.dart';
-import '../data/file_downloads.dart';
 import '../data/upload_source.dart';
-import '../domain/file_item.dart';
-import 'file_viewer_screen.dart';
 import 'files_controller.dart';
 import 'files_providers.dart';
-import 'widgets/download_progress_dialog.dart';
 import 'widgets/file_context_sheet.dart';
 import 'widgets/share_sheet.dart';
 import 'widgets/upload_source_sheet.dart';
@@ -137,60 +137,14 @@ class FileActions {
     await _run(_controller.deleteSelected, 'Could not delete all items.');
   }
 
-  /// Images open in the in-app viewer; everything else (videos included)
-  /// is fetched to a temporary copy and handed to the system "open with".
-  Future<void> open(FileItem file) async {
-    if (file.isImage) {
-      openImage(file);
-      return;
-    }
-
-    final downloads = _ref.read(fileDownloadsProvider);
-    final navigator = Navigator.of(_context, rootNavigator: true);
-    final progress = ValueNotifier<double?>(null);
-    String? taskId;
-    var cancelled = false;
-
-    showDialog<void>(
-      context: _context,
-      barrierDismissible: false,
-      builder: (_) => DownloadProgressDialog(
-        title: 'Opening ${file.name}',
-        progress: progress,
-        onCancel: () {
-          cancelled = true;
-          if (taskId case final id?) downloads.cancel(id);
-          navigator.pop();
-        },
-      ),
-    );
-
-    try {
-      final path = await downloads.fetchForOpening(
-        file,
-        onProgress: (p) {
-          if (!cancelled) progress.value = p;
-        },
-        onStarted: (id) {
-          taskId = id;
-          // Cancelled while the download link was still being fetched.
-          if (cancelled) downloads.cancel(id);
-        },
-      );
-      if (cancelled) return;
-      navigator.pop();
-      if (!await downloads.open(path)) {
-        _snack('No app found to open this file.');
-      }
-    } on DownloadCancelled {
-      // Dialog already closed by Cancel.
-    } catch (e) {
-      if (cancelled) return;
-      navigator.pop();
-      debugPrint('Open failed: $e');
-      _snack('Could not open the file.');
-    }
-  }
+  /// Images open in the viewer, swiping through the listing's images;
+  /// everything else goes to the system "open with".
+  Future<void> open(FileItem file) => openMediaFile(
+    _context,
+    _ref,
+    file,
+    gallery: _ref.read(filesControllerProvider).items,
+  );
 
   /// Web `downloadSelected()`: one file as-is, several (or a folder) as a
   /// zip. Android saves to Downloads with a progress notification; iOS
@@ -231,23 +185,6 @@ class FileActions {
   Rect? _shareOrigin() {
     final box = _context.findRenderObject();
     return box is RenderBox ? box.localToGlobal(Offset.zero) & box.size : null;
-  }
-
-  /// Full-screen viewer over the dock, swiping through the listing's images.
-  void openImage(FileItem file) {
-    final images = _ref
-        .read(filesControllerProvider)
-        .items
-        .where((f) => f.isImage)
-        .toList();
-    Navigator.of(_context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => FileViewerScreen(
-          files: images,
-          initialIndex: images.indexWhere((f) => f.id == file.id),
-        ),
-      ),
-    );
   }
 
   Future<void> showMenu(FileItem file) async {

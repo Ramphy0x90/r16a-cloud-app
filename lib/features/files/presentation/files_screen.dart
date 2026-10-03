@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/model/file_item.dart';
 import '../../../core/session/user_preferences.dart';
-import '../domain/file_item.dart';
 import 'file_actions.dart';
 import 'file_delta_sync.dart';
 import 'files_providers.dart';

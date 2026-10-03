@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/file_item.dart';
+import '../../../../core/model/file_item.dart';
 import 'file_grid_tile.dart';
 
 /// Grid view sliver — mirrors `grid-view` (`pages/files/grid-view`).

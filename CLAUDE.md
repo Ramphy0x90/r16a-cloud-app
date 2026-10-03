@@ -74,7 +74,10 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   `FilesController.folderChanged`.
   Listing cache: memory 60s → Hive 5 min → network revalidated with the stored ETag (304 reuses it);
   cleared on sign-out from `app.dart`.
-- Photos: placeholder screen.
+- Photos: done (plan Phase 8 step 18): `PhotosApi` (`/photos/years`, `/photos`, shared media via
+  `/fs/shared-with-me`), `PhotosController` (year sections, lazy pages), grid with placeholder tiles that
+  request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Pending: viewer
+  download/share actions (step 19), auto-refresh after uploads.
 
 Update this section when a phase step lands.
 
@@ -84,7 +87,10 @@ Update this section when a phase step lands.
 lib/
   app/        app.dart (MaterialApp, auth gate, theme mode), shell/ (dock), theme/
   core/       auth/, config/env.dart, network/ (dio, interceptor, ApiException),
-              session/ (CurrentUser, currentUserProvider), util/, widgets/
+              session/ (CurrentUser, currentUserProvider, users list), util/, widgets/,
+              model/ (FileItem — shared DTO),
+              media/ (MediaApi: thumbnails/bytes/download links, ThumbnailCache, image
+                      providers, FileViewerScreen, FileDownloads, openMediaFile, FileThumbnail)
   features/<name>/{data,domain,presentation}
 ```
 

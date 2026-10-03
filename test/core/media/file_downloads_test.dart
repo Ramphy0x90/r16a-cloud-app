@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:r16a_cloud_app/features/files/data/file_downloads.dart';
-import 'package:r16a_cloud_app/features/files/data/files_api.dart';
+import 'package:r16a_cloud_app/core/media/file_downloads.dart';
+import 'package:r16a_cloud_app/core/media/media_api.dart';
 
-import '../fakes.dart';
+import '../../features/files/fakes.dart';
 
 /// Only the download token call is used by [FileDownloads.requestFor].
-class _TokenApi extends FilesApi {
+class _TokenApi extends MediaApi {
   _TokenApi() : super(Dio(BaseOptions(baseUrl: 'https://cloud.test/api')));
 
   @override

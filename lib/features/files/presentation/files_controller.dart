@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/model/file_item.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
-import '../domain/file_item.dart';
 import '../domain/file_sort.dart';
 import 'files_providers.dart';
 import 'files_state.dart';

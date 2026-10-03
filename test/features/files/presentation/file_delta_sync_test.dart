@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/core/media/media_providers.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_event.dart';
 import 'package:r16a_cloud_app/features/files/presentation/file_delta_sync.dart';
@@ -120,6 +121,7 @@ void main() {
     Widget app({required bool visible}) => ProviderScope(
       overrides: [
         filesApiProvider.overrideWithValue(api),
+        mediaApiProvider.overrideWithValue(FakeMediaApi()),
         fileDownloadsProvider.overrideWithValue(FakeFileDownloads()),
         sessionApiProvider.overrideWithValue(FakeSessionApi()),
       ],

@@ -5,11 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/core/media/media_providers.dart';
+import 'package:r16a_cloud_app/core/model/file_item.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
 import 'package:r16a_cloud_app/features/files/data/file_uploader.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
 import 'package:r16a_cloud_app/features/files/data/upload_source.dart';
-import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_providers.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_screen.dart';
 import 'package:r16a_cloud_app/features/files/presentation/upload_picker.dart';
@@ -54,6 +55,7 @@ void main() {
       ProviderScope(
         overrides: [
           filesApiProvider.overrideWithValue(api),
+          mediaApiProvider.overrideWithValue(FakeMediaApi()),
           fileDownloadsProvider.overrideWithValue(downloads),
           sessionApiProvider.overrideWithValue(FakeSessionApi()),
           fileUploaderProvider.overrideWithValue(uploader),

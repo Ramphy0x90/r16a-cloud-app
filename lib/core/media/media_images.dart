@@ -4,10 +4,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
-import '../../../core/util/file_types.dart';
-import '../data/files_api.dart';
-import '../data/thumbnail_cache.dart';
-import '../domain/file_item.dart';
+import '../model/file_item.dart';
+import '../util/file_types.dart';
+import 'media_api.dart';
+import 'thumbnail_cache.dart';
 
 /// Decodes bytes from an authenticated source into Flutter's [ImageCache],
 /// keyed by [cacheKey] only — the loader is not part of the identity.
@@ -89,7 +89,7 @@ class FilePreviewImage extends _BytesImage<FilePreviewImage> {
 
   final String fileId;
   final bool _heic;
-  final FilesApi _api;
+  final MediaApi _api;
 
   @override
   String get cacheKey => 'preview:$fileId';

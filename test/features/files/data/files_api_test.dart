@@ -14,13 +14,11 @@ import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 class _StubAdapter implements HttpClientAdapter {
   _StubAdapter({
     this.json,
-    this.bytes,
     this.statusCode = 200,
     this.extraHeaders = const {},
   });
 
   final Object? json;
-  final List<int>? bytes;
   final int statusCode;
   final Map<String, List<String>> extraHeaders;
   RequestOptions? lastRequest;
@@ -38,15 +36,6 @@ class _StubAdapter implements HttpClientAdapter {
     lastBody = requestStream == null
         ? const []
         : await requestStream.expand((chunk) => chunk).toList();
-    if (bytes != null) {
-      return ResponseBody.fromBytes(
-        bytes!,
-        statusCode,
-        headers: {
-          'content-type': ['image/jpeg'],
-        },
-      );
-    }
     return ResponseBody.fromString(
       json == null ? '' : jsonEncode(json),
       statusCode,
@@ -234,23 +223,6 @@ void main() {
         ),
       );
     });
-  });
-
-  test('getThumbnail returns raw bytes for the requested size', () async {
-    final (api, adapter) = _apiWith(_StubAdapter(bytes: [1, 2, 3]));
-
-    final bytes = await api.getThumbnail('f1', size: ThumbnailSize.large);
-
-    expect(adapter.lastRequest?.path, '/fs/f1/thumbnail');
-    expect(adapter.lastRequest?.queryParameters, {'size': 'large'});
-    expect(bytes, [1, 2, 3]);
-  });
-
-  test('getDownloadToken reads the token', () async {
-    final (api, adapter) = _apiWith(_StubAdapter(json: {'token': 'tkn'}));
-
-    expect(await api.getDownloadToken('f1'), 'tkn');
-    expect(adapter.lastRequest?.path, '/fs/f1/download-token');
   });
 
   test('getFileEvents parses the delta-sync page', () async {

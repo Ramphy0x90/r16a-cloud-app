@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'files_api.dart';
+import 'media_api.dart';
 
 class _CachedThumbnail {
   _CachedThumbnail(this.bytes, this.expiresAt, this.lastAccessedAt);
@@ -16,6 +16,9 @@ class _CachedThumbnail {
 /// (`services/image-preview.service.ts`) plus the `mergeMap(..., 4)` queue in
 /// `FilesPage`: small thumbnails kept 5 min, at most 400 (least recently used
 /// evicted first), in-flight requests shared, at most 4 fetches at a time.
+/// Waiting requests are served newest first (the web's `unshift` queue in
+/// `PhotosPage`), so after a fast scroll the tiles now on screen load
+/// before the ones scrolled past.
 class ThumbnailCache {
   ThumbnailCache(this._api, {DateTime Function()? now})
     : _now = now ?? DateTime.now;
@@ -24,7 +27,7 @@ class ThumbnailCache {
   static const maxEntries = 400;
   static const maxConcurrent = 4;
 
-  final FilesApi _api;
+  final MediaApi _api;
   final DateTime Function() _now;
   final _cache = <String, _CachedThumbnail>{};
   final _inFlight = <String, Future<Uint8List?>>{};
@@ -78,10 +81,10 @@ class ThumbnailCache {
     await slot.future;
   }
 
-  /// Hands the slot straight to the next waiter, or frees it.
+  /// Hands the slot straight to the newest waiter, or frees it.
   void _release() {
     if (_waiting.isNotEmpty) {
-      _waiting.removeFirst().complete();
+      _waiting.removeLast().complete();
     } else {
       _running--;
     }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/theme/app_colors.dart';
-import '../../../../core/util/file_icons.dart';
-import '../../domain/file_item.dart';
+import '../../../app/theme/app_colors.dart';
+import '../../model/file_item.dart';
+import '../../util/file_icons.dart';
 
 /// Folder icon in the web's `--colour-folder`, otherwise the
 /// `IconFromExtensionPipe` port.

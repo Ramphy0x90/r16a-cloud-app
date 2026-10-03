@@ -1,11 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/core/model/file_item.dart';
 import 'package:r16a_cloud_app/core/network/api_exception.dart';
 import 'package:r16a_cloud_app/features/files/data/file_uploader.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
 import 'package:r16a_cloud_app/features/files/data/upload_source.dart';
-import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 
 import '../fakes.dart';
 

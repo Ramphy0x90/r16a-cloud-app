@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../domain/file_item.dart';
-import 'file_thumbnail.dart';
+import '../../../../core/media/widgets/file_thumbnail.dart';
+import '../../../../core/model/file_item.dart';
 import 'selection_check.dart';
 
 /// One card of the grid view — mirrors `.file-card` in `grid-view.html`:

@@ -4,11 +4,11 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:r16a_cloud_app/features/files/data/files_api.dart';
-import 'package:r16a_cloud_app/features/files/data/thumbnail_cache.dart';
+import 'package:r16a_cloud_app/core/media/media_api.dart';
+import 'package:r16a_cloud_app/core/media/thumbnail_cache.dart';
 
 /// Thumbnail calls stay pending until the test answers them.
-class _PendingThumbnailsApi extends FilesApi {
+class _PendingThumbnailsApi extends MediaApi {
   _PendingThumbnailsApi() : super(Dio());
 
   final calls = <String, Completer<Uint8List>>{};
@@ -57,7 +57,7 @@ void main() {
     },
   );
 
-  test('runs at most 4 fetches at a time', () async {
+  test('runs at most 4 fetches at a time, newest waiter first', () async {
     for (var i = 0; i < 6; i++) {
       cache.get('f$i');
     }
@@ -67,8 +67,9 @@ void main() {
     api.calls['f0']!.complete(Uint8List(0));
     await _settle();
     await _settle();
-    expect(api.calls.keys, contains('f4'));
-    expect(api.calls.keys, isNot(contains('f5')));
+    // Newest waiter first.
+    expect(api.calls.keys, contains('f5'));
+    expect(api.calls.keys, isNot(contains('f4')));
   });
 
   test('a failure yields null and is retried next time', () async {

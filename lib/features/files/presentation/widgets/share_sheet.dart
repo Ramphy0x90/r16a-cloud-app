@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/file_item.dart';
+import '../../../../core/model/file_item.dart';
 import '../files_providers.dart';
 
 /// Share picker — the web's share modal (`files.html`): checkbox list of

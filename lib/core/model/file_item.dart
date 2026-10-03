@@ -1,4 +1,4 @@
-import '../../../core/util/file_types.dart';
+import '../util/file_types.dart';
 
 /// Mirrors `File` from `types/file.ts` on the web client, i.e. the backend's
 /// `FileResponse` (`file/dto/FileResponse.java`). Named `FileItem` to avoid

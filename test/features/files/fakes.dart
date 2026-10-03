@@ -3,15 +3,16 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import 'package:r16a_cloud_app/core/media/file_downloads.dart';
+import 'package:r16a_cloud_app/core/media/media_api.dart';
+import 'package:r16a_cloud_app/core/model/file_item.dart';
 import 'package:r16a_cloud_app/core/network/api_exception.dart';
 import 'package:r16a_cloud_app/core/session/current_user.dart';
 import 'package:r16a_cloud_app/core/session/session_api.dart';
 import 'package:r16a_cloud_app/core/session/user_preferences.dart';
 import 'package:r16a_cloud_app/core/session/user_summary.dart';
-import 'package:r16a_cloud_app/features/files/data/file_downloads.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_event.dart';
-import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_page.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 
@@ -114,34 +115,6 @@ class FakeFilesApi extends FilesApi {
     calls.add(call);
     return call.result.future;
   }
-
-  /// File ids asked for a thumbnail; answered with an error (no thumbnail)
-  /// unless [thumbnailBytes] is set.
-  final thumbnailCalls = <(String, ThumbnailSize)>[];
-  Uint8List? thumbnailBytes;
-  final downloadCalls = <String>[];
-
-  @override
-  Future<Uint8List> getThumbnail(
-    String id, {
-    ThumbnailSize size = ThumbnailSize.small,
-    Duration? receiveTimeout,
-  }) async {
-    thumbnailCalls.add((id, size));
-    final bytes = thumbnailBytes;
-    if (bytes == null) throw Exception('no thumbnail');
-    return bytes;
-  }
-
-  /// Never completes — previews stay in their loading state.
-  @override
-  Future<Uint8List> downloadBytes(String id, {Duration? receiveTimeout}) {
-    downloadCalls.add(id);
-    return Completer<Uint8List>().future;
-  }
-
-  @override
-  Future<String> getDownloadToken(String id) async => 'tkn-$id';
 
   /// Delta-sync pages served in order; empty once drained.
   final eventPages = <FileEventsPage>[];
@@ -265,7 +238,7 @@ class FakeSessionApi extends SessionApi {
 
 /// Records opens and saves instead of touching the platform downloader.
 class FakeFileDownloads extends FileDownloads {
-  FakeFileDownloads() : super(FakeFilesApi(), () async => 'bearer');
+  FakeFileDownloads() : super(FakeMediaApi(), () async => 'bearer');
 
   final fetched = <String>[];
   final opened = <String>[];
@@ -299,4 +272,38 @@ class FakeFileDownloads extends FileDownloads {
     saved.add([for (final f in files) f.id]);
     return const SavedDownload(path: '/Download/x', inDownloads: true);
   }
+}
+
+/// [MediaApi] fake: thumbnails fail unless [thumbnailBytes] is set; full
+/// previews never resolve; download tokens are canned.
+class FakeMediaApi extends MediaApi {
+  FakeMediaApi() : super(Dio());
+
+  /// File ids asked for a thumbnail; answered with an error (no thumbnail)
+  /// unless [thumbnailBytes] is set.
+  final thumbnailCalls = <(String, ThumbnailSize)>[];
+  Uint8List? thumbnailBytes;
+  final downloadCalls = <String>[];
+
+  @override
+  Future<Uint8List> getThumbnail(
+    String id, {
+    ThumbnailSize size = ThumbnailSize.small,
+    Duration? receiveTimeout,
+  }) async {
+    thumbnailCalls.add((id, size));
+    final bytes = thumbnailBytes;
+    if (bytes == null) throw Exception('no thumbnail');
+    return bytes;
+  }
+
+  /// Never completes — previews stay in their loading state.
+  @override
+  Future<Uint8List> downloadBytes(String id, {Duration? receiveTimeout}) {
+    downloadCalls.add(id);
+    return Completer<Uint8List>().future;
+  }
+
+  @override
+  Future<String> getDownloadToken(String id) async => 'tkn-$id';
 }

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/file_item.dart';
-import '../file_images.dart';
-import '../files_providers.dart';
+import '../../model/file_item.dart';
+import '../media_images.dart';
+import '../media_providers.dart';
 import 'file_type_icon.dart';
 
 /// Media slot of a file tile — mirrors `.file-card-media` in

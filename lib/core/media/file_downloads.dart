@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:background_downloader/background_downloader.dart';
 
-import '../domain/file_item.dart';
-import 'files_api.dart';
+import '../model/file_item.dart';
+import 'media_api.dart';
 
 /// What the platform downloader should fetch.
 class DownloadRequest {
@@ -58,7 +58,7 @@ class FileDownloads {
 
   static const _saveGroup = 'save';
 
-  final FilesApi _api;
+  final MediaApi _api;
   final Future<String?> Function() _accessToken;
   final DateTime Function() _now;
   var _saveNotificationsReady = false;

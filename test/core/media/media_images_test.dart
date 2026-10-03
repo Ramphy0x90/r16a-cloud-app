@@ -1,16 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:r16a_cloud_app/features/files/data/files_api.dart';
-import 'package:r16a_cloud_app/features/files/data/thumbnail_cache.dart';
-import 'package:r16a_cloud_app/features/files/presentation/file_images.dart';
+import 'package:r16a_cloud_app/core/media/media_api.dart';
+import 'package:r16a_cloud_app/core/media/media_images.dart';
+import 'package:r16a_cloud_app/core/media/thumbnail_cache.dart';
 
-import '../fakes.dart';
+import '../../features/files/fakes.dart';
 
 void main() {
-  late FakeFilesApi api;
+  late FakeMediaApi api;
 
-  setUp(() => api = FakeFilesApi());
+  setUp(() => api = FakeMediaApi());
 
   test('preview downloads the raw file for regular images', () {
     FilePreviewImage(fakeFile('a', extension: 'jpg'), api).loadBytes();
@@ -30,11 +30,11 @@ void main() {
   });
 
   test('providers are keyed by file id only', () {
-    final cache = ThumbnailCache(FilesApi(Dio()));
+    final cache = ThumbnailCache(MediaApi(Dio()));
 
     expect(
       FilePreviewImage(fakeFile('a', extension: 'jpg'), api),
-      FilePreviewImage(fakeFile('a', extension: 'jpg'), FakeFilesApi()),
+      FilePreviewImage(fakeFile('a', extension: 'jpg'), FakeMediaApi()),
     );
     expect(
       FileThumbnailImage('a', cache),

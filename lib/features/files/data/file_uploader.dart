@@ -1,4 +1,4 @@
-import '../domain/file_item.dart';
+import '../../../core/model/file_item.dart';
 import 'files_api.dart';
 import 'upload_source.dart';
 

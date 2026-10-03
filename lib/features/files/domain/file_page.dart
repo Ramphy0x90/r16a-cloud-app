@@ -1,4 +1,4 @@
-import 'file_item.dart';
+import '../../../core/model/file_item.dart';
 
 /// Mirrors `CursorPageResponse<File>` (`types/file.ts`) — the `GET /api/fs`
 /// listing page.
