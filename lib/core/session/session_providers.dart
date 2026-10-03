@@ -22,9 +22,9 @@ class CurrentUserController extends AsyncNotifier<CurrentUser> {
     state = AsyncData(user);
   }
 
-  /// Sends the full preferences triple to the backend (mirrors the web
-  /// client's `saveUserPreferences()`, which always PATCHes all three
-  /// fields together) and adopts the server's response as the new state.
+  /// Sends all preferences to the backend (mirrors the web client's
+  /// `saveUserPreferences()`, which always PATCHes every field together)
+  /// and adopts the server's response as the new state.
   Future<void> updatePreferences(UserPreferences preferences) async {
     final updated = await ref.read(sessionApiProvider).updatePreferences(preferences);
     state = AsyncData(updated);

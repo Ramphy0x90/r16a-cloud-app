@@ -38,28 +38,23 @@ class UserPreferences {
   const UserPreferences({
     required this.theme,
     required this.defaultViewMode,
-    required this.encryptFilesByDefault,
   });
 
   final AppThemePreference theme;
   final DefaultFileView defaultViewMode;
-  final bool encryptFilesByDefault;
 
   factory UserPreferences.fromJson(Map<String, dynamic> json) => UserPreferences(
         theme: AppThemePreference.fromJson(json['preferredTheme'] as String),
         defaultViewMode: DefaultFileView.fromJson(json['defaultViewMode'] as String),
-        encryptFilesByDefault: json['encryptFilesByDefault'] as bool,
       );
 
   UserPreferences copyWith({
     AppThemePreference? theme,
     DefaultFileView? defaultViewMode,
-    bool? encryptFilesByDefault,
   }) {
     return UserPreferences(
       theme: theme ?? this.theme,
       defaultViewMode: defaultViewMode ?? this.defaultViewMode,
-      encryptFilesByDefault: encryptFilesByDefault ?? this.encryptFilesByDefault,
     );
   }
 }

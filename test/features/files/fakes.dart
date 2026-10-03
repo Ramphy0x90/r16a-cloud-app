@@ -207,7 +207,6 @@ class FakeSessionApi extends SessionApi {
     preferences: UserPreferences(
       theme: AppThemePreference.light,
       defaultViewMode: DefaultFileView.list,
-      encryptFilesByDefault: false,
     ),
   );
 

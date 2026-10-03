@@ -40,7 +40,6 @@ class _StubAdapter implements HttpClientAdapter {
 Map<String, dynamic> _userJson({
   String theme = 'dark',
   String viewMode = 'list',
-  bool encrypt = true,
 }) {
   return {
     'id': 'user-1',
@@ -50,7 +49,6 @@ Map<String, dynamic> _userJson({
     'preferences': {
       'preferredTheme': theme,
       'defaultViewMode': viewMode,
-      'encryptFilesByDefault': encrypt,
     },
   };
 }
@@ -65,25 +63,23 @@ void main() {
       const UserPreferences(
         theme: AppThemePreference.dark,
         defaultViewMode: DefaultFileView.list,
-        encryptFilesByDefault: true,
       ),
     );
 
     expect(adapter.lastRequest?.method, 'PATCH');
     expect(adapter.lastRequest?.path, '/user/me/preferences');
     // Must match `UpdateMyPreferencesRequest` / `UserPreferencesPatchRequest`
-    // on the backend exactly: { preferences: { preferredTheme, defaultViewMode, encryptFilesByDefault } }.
+    // on the backend exactly: { preferences: { preferredTheme, defaultViewMode } }.
     expect(adapter.lastBody, {
       'preferences': {
         'preferredTheme': 'dark',
         'defaultViewMode': 'list',
-        'encryptFilesByDefault': true,
       },
     });
   });
 
   test('parses the preferences returned by GET /user/me and PATCH alike', () async {
-    final adapter = _StubAdapter(_userJson(theme: 'light', viewMode: 'grid', encrypt: false));
+    final adapter = _StubAdapter(_userJson(theme: 'light', viewMode: 'grid'));
     final dio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = adapter;
     final api = SessionApi(dio);
 
@@ -93,7 +89,6 @@ void main() {
     expect(user.displayName, 'Ramphy Aquino Nova');
     expect(user.preferences.theme, AppThemePreference.light);
     expect(user.preferences.defaultViewMode, DefaultFileView.grid);
-    expect(user.preferences.encryptFilesByDefault, false);
   });
 
   test('listUsers requests the first 200 users and reads content', () async {

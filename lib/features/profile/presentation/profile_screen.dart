@@ -64,7 +64,6 @@ class _ProfileContent extends ConsumerWidget {
         ProfilePreferencesCard(
           theme: user.preferences.theme,
           defaultViewMode: user.preferences.defaultViewMode,
-          encryptFilesByDefault: user.preferences.encryptFilesByDefault,
           onThemeChanged: (value) => _updatePreferences(
             ref,
             user.preferences.copyWith(theme: value),
@@ -72,10 +71,6 @@ class _ProfileContent extends ConsumerWidget {
           onDefaultViewModeChanged: (value) => _updatePreferences(
             ref,
             user.preferences.copyWith(defaultViewMode: value),
-          ),
-          onEncryptFilesByDefaultChanged: (value) => _updatePreferences(
-            ref,
-            user.preferences.copyWith(encryptFilesByDefault: value),
           ),
         ),
         if (saveState.errorMessage != null) ...[

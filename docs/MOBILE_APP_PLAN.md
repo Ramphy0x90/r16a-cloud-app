@@ -53,7 +53,7 @@ All endpoints require `Authorization: Bearer <access_token>` **except** `/api/fs
 | Method | Path | Notes |
 | --- | --- | --- |
 | GET | `/me` | current internal user (id, username, email, displayName, role, preferences, timestamps) |
-| PATCH | `/me/preferences` | `{ preferences: { preferredTheme, encryptFilesByDefault, defaultViewMode } }` (partial) |
+| PATCH | `/me/preferences` | `{ preferences: { preferredTheme, defaultViewMode } }` (partial) |
 | GET | `/` | `Page<UserResponse>` — used for the share picker |
 
 ### Files — `/api/fs`
@@ -89,7 +89,7 @@ File { id, name, description?, fsPath, isDirectory, visibility: PRIVATE|PUBLIC|S
        createdAt, updatedAt, takenAt?, blurHash? }
 CursorPageResponse<T> { content: T[], nextCursor?, hasMore }
 UserResponse { id, username, email, displayName, role, preferences, createdAt, updatedAt }
-UserPreferences { preferredTheme: light|dark, encryptFilesByDefault: bool, defaultViewMode: grid|list }
+UserPreferences { preferredTheme: light|dark, defaultViewMode: grid|list }
 DashboardResponse { metrics, recentFiles: [{ id, name, visibility, sizeBytes, updatedAt }] }
 ```
 Helpers to port from `utils/`:
@@ -367,7 +367,6 @@ Parity with `pages/profile`.
   error revert — parity):
   - Default theme: light / dark (applies app‑wide immediately).
   - Default file view: grid / list.
-  - Encrypt files by default: toggle (`toggle_row`).
   - Error line: "Could not save preferences. Please try again."
 - **Authentication**: Logout button → `OidcService.logout()` (end session + wipe token
   store + clear caches) → `/login`.

@@ -47,7 +47,6 @@ class SessionApi {
           'preferences': {
             'preferredTheme': preferences.theme.name,
             'defaultViewMode': preferences.defaultViewMode.name,
-            'encryptFilesByDefault': preferences.encryptFilesByDefault,
           },
         },
       );
