@@ -30,6 +30,13 @@ flutter run
 flutter run --dart-define-from-file=config/prod.json
 flutter build apk --release --dart-define-from-file=config/prod.json
 # Release builds without these defines throw at startup (Env.checkReleaseConfig).
+
+# Launcher icon + native splash (after changing assets/imgs/domovoy-logo-*.svg)
+flutter test tool/branding/render_branding_test.dart   # SVG -> assets/branding/*.png
+dart run flutter_launcher_icons                          # config: flutter_launcher_icons.yaml
+dart run flutter_native_splash:create                    # config: flutter_native_splash.yaml
+# flutter_launcher_icons rewrites ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS
+# in ios/Runner.xcodeproj/project.pbxproj to "AppIcon" — revert that hunk (must stay YES).
 ```
 
 Local backend: `cd ../r16a-cloud && docker compose up` (app + MySQL + Redis on :8080).

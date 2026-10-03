@@ -1,0 +1,15 @@
+# Native launch screen, generated from assets/branding (see tool/branding/).
+# Colors match AppColors.lightBackground / darkBackground, so it hands over
+# seamlessly to the in-app startup screen (logo + spinner).
+# Regenerate: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#EAEBED"
+  image: assets/branding/splash_light.png
+  color_dark: "#0A0A0B"
+  image_dark: assets/branding/splash_dark.png
+  android_12:
+    color: "#EAEBED"
+    image: assets/branding/splash_android12_light.png
+    color_dark: "#0A0A0B"
+    image_dark: assets/branding/splash_android12_dark.png
+  web: false
