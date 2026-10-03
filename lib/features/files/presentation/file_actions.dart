@@ -1,0 +1,164 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/network/api_exception.dart';
+import '../../../core/widgets/confirm_dialog.dart';
+import '../../../core/widgets/text_input_dialog.dart';
+import '../domain/file_item.dart';
+import 'file_viewer_screen.dart';
+import 'files_controller.dart';
+import 'files_providers.dart';
+import 'widgets/file_context_sheet.dart';
+import 'widgets/share_sheet.dart';
+
+/// User-facing flows behind the Files screen's buttons: prompt (dialog /
+/// sheet), call [FilesController], report failures. Mirrors the web
+/// `FilesPage` modal handlers (`openCreateFolderModal`, `renameFile`,
+/// `confirmDelete`, `confirmBulkDelete`, `saveShareSettings`); the web
+/// only logs errors, here they surface as snackbars.
+class FileActions {
+  FileActions(this._context, this._ref);
+
+  final BuildContext _context;
+  final WidgetRef _ref;
+
+  FilesController get _controller =>
+      _ref.read(filesControllerProvider.notifier);
+
+  Future<void> createFolder() async {
+    final name = await showTextInputDialog(
+      context: _context,
+      title: 'Create Folder',
+      hint: 'Folder name',
+      confirmLabel: 'Create',
+    );
+    if (name == null) return;
+    await _run(
+      () => _controller.createFolder(name),
+      'Could not create folder.',
+    );
+  }
+
+  Future<void> rename(FileItem file) async {
+    // Pre-select the name without its extension, as native file apps do.
+    final dot = file.name.lastIndexOf('.');
+    final name = await showTextInputDialog(
+      context: _context,
+      title: 'Rename',
+      hint: 'New name',
+      confirmLabel: 'Rename',
+      initialValue: file.name,
+      initialSelection: TextSelection(
+        baseOffset: 0,
+        extentOffset: file.isDirectory || dot <= 0 ? file.name.length : dot,
+      ),
+    );
+    if (name == null || name == file.name) return;
+    await _run(() => _controller.rename(file, name), 'Could not rename.');
+  }
+
+  /// The sheet reports its own save failures inline.
+  Future<void> share(FileItem file) => showShareSheet(
+    context: _context,
+    file: file,
+    onSave: (ids) => _controller.updateSharing(file, ids),
+  );
+
+  Future<void> delete(FileItem file) async {
+    final confirmed = await showConfirmDialog(
+      context: _context,
+      title: 'Delete ${file.isDirectory ? 'folder' : 'file'}',
+      message: TextSpan(
+        text: 'Are you sure you want to delete ',
+        children: [
+          TextSpan(
+            text: file.name,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const TextSpan(text: '?'),
+        ],
+      ),
+      confirmLabel: 'Delete',
+      destructive: true,
+    );
+    if (!confirmed) return;
+    await _run(() => _controller.delete(file), 'Could not delete.');
+  }
+
+  Future<void> deleteSelected() async {
+    final count = _ref.read(filesControllerProvider).selectedIds.length;
+    if (count == 0) return;
+    final confirmed = await showConfirmDialog(
+      context: _context,
+      title: 'Delete $count items',
+      message: TextSpan(
+        text: 'Are you sure you want to delete ',
+        children: [
+          TextSpan(
+            text: '$count',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const TextSpan(
+            text: ' selected items? This action cannot be undone.',
+          ),
+        ],
+      ),
+      confirmLabel: 'Delete',
+      destructive: true,
+    );
+    if (!confirmed) return;
+    await _run(_controller.deleteSelected, 'Could not delete all items.');
+  }
+
+  /// Full-screen viewer over the dock, swiping through the listing's images.
+  void openImage(FileItem file) {
+    final images = _ref
+        .read(filesControllerProvider)
+        .items
+        .where((f) => f.isImage)
+        .toList();
+    Navigator.of(_context, rootNavigator: true).push(
+      MaterialPageRoute<void>(
+        builder: (_) => FileViewerScreen(
+          files: images,
+          initialIndex: images.indexWhere((f) => f.id == file.id),
+        ),
+      ),
+    );
+  }
+
+  Future<void> showMenu(FileItem file) async {
+    final action = await showFileContextSheet(
+      context: _context,
+      file: file,
+      readOnly: _ref.read(filesControllerProvider).readOnly,
+    );
+    if (action == null || !_context.mounted) return;
+    switch (action) {
+      case FileAction.open:
+        openImage(file);
+      case FileAction.select:
+        _controller.startSelection(file);
+      case FileAction.rename:
+        await rename(file);
+      case FileAction.share:
+        await share(file);
+      case FileAction.delete:
+        await delete(file);
+    }
+  }
+
+  Future<void> _run(Future<void> Function() action, String fallback) async {
+    try {
+      await action();
+    } catch (e) {
+      if (!_context.mounted) return;
+      final message = e is ApiException && e.statusCode == 409
+          ? 'A file or folder with that name already exists.'
+          : fallback;
+      ScaffoldMessenger.of(
+        _context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+}

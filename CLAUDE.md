@@ -57,8 +57,11 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   (tabs, folder stack, sort, cursor paging), grid/list UI, options sheet. Shared tab is a flat list
   (folders there don't open). Thumbnails (`ThumbnailCache`: 400 LRU, 5 min, 4 concurrent) + blurhash
   via custom `ImageProvider`s in `file_images.dart`; tapping an image opens `FileViewerScreen`
-  (photo_view, swipe between the folder's images). Pending: open videos/other files (needs download),
-  mutations, upload/download, delta sync, Hive + ETag.
+  (photo_view, swipe between the folder's images). Mutations: create folder, rename, share
+  (`shareCandidatesProvider`, `SessionApi.listUsers`), delete + bulk delete, selection mode
+  (options "Select" or long-press menu); prompts/snackbars in `file_actions.dart`, cache invalidated
+  on every mutation. Pending: open videos/other files (needs download), upload/download, delta sync,
+  Hive + ETag.
 - Photos: placeholder screen.
 
 Update this section when a phase step lands.

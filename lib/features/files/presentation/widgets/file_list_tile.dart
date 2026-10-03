@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/util/date_format.dart';
 import '../../domain/file_item.dart';
 import 'file_thumbnail.dart';
+import 'selection_check.dart';
 
 /// One row of the list view — mirrors `.list-row` in `list-view.html`:
 /// icon, name, then "From" (shared tab) or "Modified", and the shared badge.
@@ -11,12 +12,18 @@ class FileListTile extends StatelessWidget {
     super.key,
     required this.file,
     required this.showSharedFrom,
+    required this.selectionMode,
+    required this.selected,
     required this.onTap,
+    required this.onLongPress,
   });
 
   final FileItem file;
   final bool showSharedFrom;
+  final bool selectionMode;
+  final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -24,11 +31,16 @@ class FileListTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
+      onLongPress: onLongPress,
       borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 8),
         child: Row(
           children: [
+            if (selectionMode) ...[
+              SelectionCheck(selected: selected),
+              const SizedBox(width: 12),
+            ],
             Container(
               width: 38,
               height: 38,

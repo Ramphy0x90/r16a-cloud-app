@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/user_preferences.dart';
 import '../domain/file_item.dart';
-import 'file_viewer_screen.dart';
+import 'file_actions.dart';
 import 'files_providers.dart';
 import 'files_state.dart';
 import 'widgets/file_grid.dart';
@@ -13,7 +13,8 @@ import 'widgets/files_message.dart';
 import 'widgets/files_tab_switcher.dart';
 
 /// Ported from the web client's `pages/files` + `files-toolbar`: My files /
-/// Shared tabs, folder navigation, grid/list views and cursor paging.
+/// Shared tabs, folder navigation, grid/list views, cursor paging, and the
+/// selection toolbar. Prompts and error reporting live in [FileActions].
 class FilesScreen extends ConsumerStatefulWidget {
   const FilesScreen({super.key});
 
@@ -47,28 +48,27 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
     }
   }
 
+  FileActions get _actions => FileActions(context, ref);
+
+  /// In selection mode a tap toggles, like the web's `onFileAction`.
   void _onFileTap(FileItem file) {
-    if (file.isDirectory) {
-      ref.read(filesControllerProvider.notifier).openFolder(file);
-      return;
-    }
-    if (file.isImage) {
-      final images = ref
-          .read(filesControllerProvider)
-          .items
-          .where((f) => f.isImage)
-          .toList();
-      // Root navigator: the viewer covers the dock.
-      Navigator.of(context, rootNavigator: true).push(
-        MaterialPageRoute<void>(
-          builder: (_) => FileViewerScreen(
-            files: images,
-            initialIndex: images.indexWhere((f) => f.id == file.id),
-          ),
-        ),
-      );
+    final controller = ref.read(filesControllerProvider.notifier);
+    if (ref.read(filesControllerProvider).selectionMode) {
+      controller.toggleSelected(file);
+    } else if (file.isDirectory) {
+      controller.openFolder(file);
+    } else if (file.isImage) {
+      _actions.openImage(file);
     }
     // Videos and other files open once downloads land (transfer step).
+  }
+
+  void _onFileLongPress(FileItem file) {
+    if (ref.read(filesControllerProvider).selectionMode) {
+      ref.read(filesControllerProvider.notifier).toggleSelected(file);
+    } else {
+      _actions.showMenu(file);
+    }
   }
 
   Future<void> _refresh() async {
@@ -93,10 +93,16 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) => _maybeLoadMore());
     });
 
+    // System back leaves selection mode first, then pops a folder level.
     return PopScope(
-      canPop: state.breadcrumbs.isEmpty,
+      canPop: state.breadcrumbs.isEmpty && !state.selectionMode,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) controller.goUp();
+        if (didPop) return;
+        if (state.selectionMode) {
+          controller.cancelSelection();
+        } else {
+          controller.goUp();
+        }
       },
       child: Scaffold(
         appBar: _buildAppBar(context, state),
@@ -107,8 +113,16 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, FilesState state) {
     final controller = ref.read(filesControllerProvider.notifier);
+    if (state.selectionMode) return _buildSelectionAppBar(state);
+
     final folder = state.currentFolder;
     final actions = [
+      if (!state.readOnly)
+        IconButton(
+          onPressed: _actions.createFolder,
+          icon: const Icon(Icons.create_new_folder_outlined),
+          tooltip: 'New folder',
+        ),
       IconButton(
         onPressed: () => showFileOptionsSheet(context),
         icon: const Icon(Icons.more_vert_rounded),
@@ -149,6 +163,47 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
         ],
       ),
       actions: actions,
+    );
+  }
+
+  /// Web `files-toolbar` in selection mode: cancel, count, and the actions
+  /// valid for the selection (share / rename need exactly one item).
+  /// Download joins with the transfer step.
+  PreferredSizeWidget _buildSelectionAppBar(FilesState state) {
+    final controller = ref.read(filesControllerProvider.notifier);
+    final selected = state.selectedFiles;
+    final single = selected.length == 1 ? selected.single : null;
+
+    return AppBar(
+      leading: IconButton(
+        onPressed: controller.cancelSelection,
+        icon: const Icon(Icons.close_rounded),
+        tooltip: 'Cancel selection',
+      ),
+      title: Text('${selected.length} selected'),
+      actions: [
+        if (!state.readOnly && single != null) ...[
+          IconButton(
+            onPressed: () => _actions.share(single),
+            icon: const Icon(Icons.share_outlined),
+            tooltip: 'Share',
+          ),
+          IconButton(
+            onPressed: () => _actions.rename(single),
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Rename',
+          ),
+        ],
+        if (!state.readOnly && selected.isNotEmpty)
+          IconButton(
+            onPressed: _actions.deleteSelected,
+            icon: Icon(
+              Icons.delete_outline_rounded,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            tooltip: 'Delete',
+          ),
+      ],
     );
   }
 
@@ -193,12 +248,18 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
             ? FileGrid(
                 files: state.items,
                 showSharedFrom: showSharedFrom,
+                selectionMode: state.selectionMode,
+                selectedIds: state.selectedIds,
                 onTap: _onFileTap,
+                onLongPress: _onFileLongPress,
               )
             : FileList(
                 files: state.items,
                 showSharedFrom: showSharedFrom,
+                selectionMode: state.selectionMode,
+                selectedIds: state.selectedIds,
                 onTap: _onFileTap,
+                onLongPress: _onFileLongPress,
               ),
       );
     }

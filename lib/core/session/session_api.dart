@@ -3,10 +3,12 @@ import 'package:dio/dio.dart';
 import '../network/api_exception.dart';
 import 'current_user.dart';
 import 'user_preferences.dart';
+import 'user_summary.dart';
 
 /// Mirrors the web client's `UserService` — the internal user behind the
 /// OIDC identity (`GET /api/user/me`) and its preferences
-/// (`PATCH /api/user/me/preferences`).
+/// (`PATCH /api/user/me/preferences`), plus the user list
+/// (`GET /api/user`).
 class SessionApi {
   SessionApi(this._dio);
 
@@ -16,6 +18,22 @@ class SessionApi {
     try {
       final response = await _dio.get<Map<String, dynamic>>('/user/me');
       return CurrentUser.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Mirrors `UserService.getUsers()` — first page of 200, used by the
+  /// share picker.
+  Future<List<UserSummary>> listUsers({int page = 0, int size = 200}) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/user',
+        queryParameters: {'page': page, 'size': size},
+      );
+      return (response.data!['content'] as List<dynamic>)
+          .map((e) => UserSummary.fromJson(e as Map<String, dynamic>))
+          .toList();
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

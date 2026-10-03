@@ -10,12 +10,18 @@ class FileList extends StatelessWidget {
     super.key,
     required this.files,
     required this.showSharedFrom,
+    required this.selectionMode,
+    required this.selectedIds,
     required this.onTap,
+    required this.onLongPress,
   });
 
   final List<FileItem> files;
   final bool showSharedFrom;
+  final bool selectionMode;
+  final Set<String> selectedIds;
   final ValueChanged<FileItem> onTap;
+  final ValueChanged<FileItem> onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +33,10 @@ class FileList extends StatelessWidget {
           key: ValueKey(file.id),
           file: file,
           showSharedFrom: showSharedFrom,
+          selectionMode: selectionMode,
+          selected: selectedIds.contains(file.id),
           onTap: () => onTap(file),
+          onLongPress: () => onLongPress(file),
         );
       },
     );

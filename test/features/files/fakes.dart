@@ -3,9 +3,11 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
+import 'package:r16a_cloud_app/core/network/api_exception.dart';
 import 'package:r16a_cloud_app/core/session/current_user.dart';
 import 'package:r16a_cloud_app/core/session/session_api.dart';
 import 'package:r16a_cloud_app/core/session/user_preferences.dart';
+import 'package:r16a_cloud_app/core/session/user_summary.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_page.dart';
@@ -16,17 +18,20 @@ FileItem fakeFile(
   bool isDirectory = false,
   String? parentId,
   String extension = 'txt',
+  String? name,
+  String ownerId = 'owner-1',
+  List<String> sharedWithIds = const [],
 }) => FileItem(
   id: id,
-  name: isDirectory ? id : '$id.$extension',
+  name: name ?? (isDirectory ? id : '$id.$extension'),
   description: null,
   fsPath: '/$id',
   isDirectory: isDirectory,
   visibility: 'PRIVATE',
   parentId: parentId,
-  ownerId: 'owner-1',
+  ownerId: ownerId,
   ownerDisplayName: 'Owner',
-  sharedWithIds: const [],
+  sharedWithIds: sharedWithIds,
   createdAt: DateTime.utc(2026),
   updatedAt: DateTime.utc(2026),
   takenAt: null,
@@ -97,6 +102,51 @@ class FakeFilesApi extends FilesApi {
     return Completer<Uint8List>().future;
   }
 
+  // ── Mutations: answered immediately and recorded ──
+
+  final deleted = <String>[];
+
+  /// Ids whose delete fails with a 500.
+  final failingDeletes = <String>{};
+  final renamed = <(String, String)>[];
+  final sharingUpdates = <(String, List<String>)>[];
+
+  /// When set, every mutation fails with this.
+  ApiException? mutationError;
+
+  @override
+  Future<FileItem> createFolder({
+    required String ownerId,
+    required String name,
+    String? parentId,
+  }) async {
+    if (mutationError case final e?) throw e;
+    return fakeFile(name, isDirectory: true, parentId: parentId);
+  }
+
+  @override
+  Future<FileItem> rename(String id, String name) async {
+    if (mutationError case final e?) throw e;
+    renamed.add((id, name));
+    return fakeFile(id, name: name);
+  }
+
+  @override
+  Future<FileItem> updateSharing(String id, List<String> sharedWithIds) async {
+    if (mutationError case final e?) throw e;
+    sharingUpdates.add((id, sharedWithIds));
+    return fakeFile(id, sharedWithIds: sharedWithIds);
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    if (mutationError case final e?) throw e;
+    if (failingDeletes.contains(id)) {
+      throw const ApiException('boom', statusCode: 500);
+    }
+    deleted.add(id);
+  }
+
   @override
   Future<List<FileItem>> getFilesSharedWithMe({
     FileSortField sortField = FileSortField.name,
@@ -125,4 +175,28 @@ class FakeSessionApi extends SessionApi {
       encryptFilesByDefault: false,
     ),
   );
+
+  /// Includes the signed-in user, who the share picker must leave out.
+  @override
+  Future<List<UserSummary>> listUsers({int page = 0, int size = 200}) async =>
+      const [
+        UserSummary(
+          id: 'owner-1',
+          username: 'owner',
+          displayName: 'Owner',
+          email: 'owner@example.com',
+        ),
+        UserSummary(
+          id: 'u2',
+          username: 'jdoe',
+          displayName: null,
+          email: 'j@example.com',
+        ),
+        UserSummary(
+          id: 'u3',
+          username: 'amy',
+          displayName: 'Amy',
+          email: 'a@example.com',
+        ),
+      ];
 }

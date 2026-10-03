@@ -95,4 +95,21 @@ void main() {
     expect(user.preferences.defaultViewMode, DefaultFileView.grid);
     expect(user.preferences.encryptFilesByDefault, false);
   });
+
+  test('listUsers requests the first 200 users and reads content', () async {
+    final adapter = _StubAdapter({
+      'content': [
+        {'id': 'u2', 'username': 'jdoe', 'displayName': null, 'email': 'j@x.io'},
+        {'id': 'u3', 'username': 'amy', 'displayName': 'Amy', 'email': 'a@x.io'},
+      ],
+      'totalElements': 2,
+    });
+    final dio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = adapter;
+
+    final users = await SessionApi(dio).listUsers();
+
+    expect(adapter.lastRequest?.path, '/user');
+    expect(adapter.lastRequest?.queryParameters, {'page': 0, 'size': 200});
+    expect(users.map((u) => u.label), ['jdoe', 'Amy']);
+  });
 }

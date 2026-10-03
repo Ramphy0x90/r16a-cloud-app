@@ -5,8 +5,9 @@ import '../../../../core/session/user_preferences.dart';
 import '../../domain/file_sort.dart';
 import '../files_providers.dart';
 
-/// View + sort menu — the native equivalent of the web `file-options`
-/// dropdown. Stays open and updates in place as options are picked.
+/// Select / view / sort menu — the native equivalent of the web
+/// `file-options` dropdown. View and sort update in place; "Select" closes
+/// the sheet, like the web menu.
 Future<void> showFileOptionsSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
@@ -32,6 +33,12 @@ class _FileOptionsContent extends ConsumerWidget {
       filesControllerProvider.select((s) => s.sortDirection),
     );
     final controller = ref.read(filesControllerProvider.notifier);
+    final readOnly = ref.watch(
+      filesControllerProvider.select((s) => s.readOnly),
+    );
+    final selectionMode = ref.watch(
+      filesControllerProvider.select((s) => s.selectionMode),
+    );
 
     Widget sectionLabel(String text) => Padding(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
@@ -71,6 +78,22 @@ class _FileOptionsContent extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Shared tab: selection only enables download, which isn't in yet.
+        if (!readOnly) ...[
+          ListTile(
+            leading: Icon(
+              selectionMode
+                  ? Icons.cancel_outlined
+                  : Icons.check_circle_outline_rounded,
+            ),
+            title: Text(selectionMode ? 'Cancel selection' : 'Select'),
+            onTap: () {
+              controller.setSelectionMode(!selectionMode);
+              Navigator.of(context).pop();
+            },
+          ),
+          const Divider(),
+        ],
         sectionLabel('View'),
         viewTile(DefaultFileView.grid, Icons.grid_view_rounded),
         viewTile(DefaultFileView.list, Icons.view_list_rounded),

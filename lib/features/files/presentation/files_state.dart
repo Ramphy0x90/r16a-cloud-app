@@ -22,6 +22,8 @@ class FilesState {
     this.hasMore = false,
     this.nextCursor,
     this.loadingMore = false,
+    this.selectionMode = false,
+    this.selectedIds = const {},
   });
 
   final FilesTab tab;
@@ -46,6 +48,14 @@ class FilesState {
   final String? nextCursor;
   final bool loadingMore;
 
+  /// Multi-select mode — mirrors `selectionMode` / `selectedFileIds`.
+  final bool selectionMode;
+  final Set<String> selectedIds;
+
+  /// Selected items in listing order.
+  List<FileItem> get selectedFiles =>
+      items.where((f) => selectedIds.contains(f.id)).toList();
+
   FileItem? get currentFolder => breadcrumbs.isEmpty ? null : breadcrumbs.last;
 
   /// Shared-with-me is read-only, like the web toolbar's `readOnly`.
@@ -63,6 +73,8 @@ class FilesState {
     bool? hasMore,
     Object? nextCursor = _unset,
     bool? loadingMore,
+    bool? selectionMode,
+    Set<String>? selectedIds,
   }) => FilesState(
     tab: tab ?? this.tab,
     breadcrumbs: breadcrumbs ?? this.breadcrumbs,
@@ -77,5 +89,7 @@ class FilesState {
         ? this.nextCursor
         : nextCursor as String?,
     loadingMore: loadingMore ?? this.loadingMore,
+    selectionMode: selectionMode ?? this.selectionMode,
+    selectedIds: selectedIds ?? this.selectedIds,
   );
 }

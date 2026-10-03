@@ -9,7 +9,10 @@ class FileGrid extends StatelessWidget {
     super.key,
     required this.files,
     required this.showSharedFrom,
+    required this.selectionMode,
+    required this.selectedIds,
     required this.onTap,
+    required this.onLongPress,
   });
 
   final List<FileItem> files;
@@ -17,7 +20,10 @@ class FileGrid extends StatelessWidget {
   /// Shared-with-me tab: hides the shared badge, like the web's
   /// `showSharedFrom` input.
   final bool showSharedFrom;
+  final bool selectionMode;
+  final Set<String> selectedIds;
   final ValueChanged<FileItem> onTap;
+  final ValueChanged<FileItem> onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +41,10 @@ class FileGrid extends StatelessWidget {
           key: ValueKey(file.id),
           file: file,
           showSharedBadge: !showSharedFrom,
+          selectionMode: selectionMode,
+          selected: selectedIds.contains(file.id),
           onTap: () => onTap(file),
+          onLongPress: () => onLongPress(file),
         );
       },
     );

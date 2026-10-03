@@ -2,20 +2,28 @@ import 'package:flutter/material.dart';
 
 import '../../domain/file_item.dart';
 import 'file_thumbnail.dart';
+import 'selection_check.dart';
 
 /// One card of the grid view — mirrors `.file-card` in `grid-view.html`:
-/// media area and a name footer with the shared badge.
+/// media area, a name footer with the shared badge, and the selection
+/// marker in selection mode.
 class FileGridTile extends StatelessWidget {
   const FileGridTile({
     super.key,
     required this.file,
     required this.showSharedBadge,
+    required this.selectionMode,
+    required this.selected,
     required this.onTap,
+    required this.onLongPress,
   });
 
   final FileItem file;
   final bool showSharedBadge;
+  final bool selectionMode;
+  final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -23,35 +31,55 @@ class FileGridTile extends StatelessWidget {
 
     return Material(
       color: scheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: selected
+            ? BorderSide(color: scheme.primary, width: 2)
+            : BorderSide.none,
+      ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Column(
+        onLongPress: onLongPress,
+        child: Stack(
           children: [
-            Expanded(child: FileThumbnail(file: file, iconSize: 44)),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      file.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
+            Column(
+              children: [
+                Expanded(child: FileThumbnail(file: file, iconSize: 44)),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          file.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                    ),
+                      if (showSharedBadge && file.isShared) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.people_rounded,
+                          size: 14,
+                          color: scheme.primary,
+                        ),
+                      ],
+                    ],
                   ),
-                  if (showSharedBadge && file.isShared) ...[
-                    const SizedBox(width: 4),
-                    Icon(Icons.people_rounded, size: 14, color: scheme.primary),
-                  ],
-                ],
-              ),
+                ),
+              ],
             ),
+            if (selectionMode)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: SelectionCheck(selected: selected),
+              ),
           ],
         ),
       ),
