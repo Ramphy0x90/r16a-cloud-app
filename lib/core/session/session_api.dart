@@ -39,6 +39,16 @@ class SessionApi {
     }
   }
 
+  /// `DELETE /api/user/me` — erases the account and everything it owns on
+  /// the server. The caller signs out afterwards.
+  Future<void> deleteAccount() async {
+    try {
+      await _dio.delete<void>('/user/me');
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   Future<CurrentUser> updatePreferences(UserPreferences preferences) async {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(

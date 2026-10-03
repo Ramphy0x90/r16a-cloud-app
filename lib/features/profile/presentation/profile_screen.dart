@@ -9,6 +9,7 @@ import '../../../core/session/user_preferences.dart';
 import '../../../core/widgets/status_message.dart';
 import 'profile_save_controller.dart';
 import 'widgets/profile_auth_card.dart';
+import 'widgets/profile_delete_account_card.dart';
 import 'widgets/profile_identity_card.dart';
 import 'widgets/profile_preferences_card.dart';
 import 'widgets/profile_storage_card.dart';
@@ -85,6 +86,15 @@ class _ProfileContent extends ConsumerWidget {
         const SizedBox(height: 16),
         ProfileAuthCard(
           onLogout: () => ref.read(authControllerProvider.notifier).logout(),
+        ),
+        const SizedBox(height: 16),
+        ProfileDeleteAccountCard(
+          onDeleteAccount: () async {
+            await ref.read(sessionApiProvider).deleteAccount();
+            // Signing out also clears every local cache. The token must go:
+            // using it again would provision a fresh, empty account.
+            await ref.read(authControllerProvider.notifier).logout();
+          },
         ),
       ],
     );

@@ -107,4 +107,14 @@ void main() {
     expect(adapter.lastRequest?.queryParameters, {'page': 0, 'size': 200});
     expect(users.map((u) => u.label), ['jdoe', 'Amy']);
   });
+
+  test('deleteAccount sends DELETE /user/me', () async {
+    final adapter = _StubAdapter(const {});
+    final dio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = adapter;
+
+    await SessionApi(dio).deleteAccount();
+
+    expect(adapter.lastRequest?.method, 'DELETE');
+    expect(adapter.lastRequest?.path, '/user/me');
+  });
 }
