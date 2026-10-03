@@ -12,11 +12,17 @@ import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 /// Records the outgoing request and replies with a fixed status and body,
 /// standing in for the real `r16a-cloud` backend.
 class _StubAdapter implements HttpClientAdapter {
-  _StubAdapter({this.json, this.bytes, this.statusCode = 200});
+  _StubAdapter({
+    this.json,
+    this.bytes,
+    this.statusCode = 200,
+    this.extraHeaders = const {},
+  });
 
   final Object? json;
   final List<int>? bytes;
   final int statusCode;
+  final Map<String, List<String>> extraHeaders;
   RequestOptions? lastRequest;
 
   /// Raw request body bytes (streamed bodies such as uploads).
@@ -46,6 +52,7 @@ class _StubAdapter implements HttpClientAdapter {
       statusCode,
       headers: {
         'content-type': ['application/json'],
+        ...extraHeaders,
       },
     );
   }
@@ -358,6 +365,48 @@ void main() {
 
       expect(adapter.lastRequest?.method, 'POST');
       expect(adapter.lastRequest?.path, '/fs/upload/up-1/complete');
+    });
+  });
+
+  group('ETag revalidation', () {
+    test('sends If-None-Match and reports 304 as not modified', () async {
+      final (api, adapter) = _apiWith(
+        _StubAdapter(
+          statusCode: 304,
+          extraHeaders: {
+            'etag': ['"o:root:1"'],
+          },
+        ),
+      );
+
+      final result = await api.getFilesRevalidating(
+        ownerId: 'owner-1',
+        ifNoneMatch: '"o:root:1"',
+      );
+
+      expect(adapter.lastRequest?.headers['If-None-Match'], '"o:root:1"');
+      expect(result.page, isNull);
+      expect(result.etag, '"o:root:1"');
+    });
+
+    test('a 200 returns the page and its ETag, no header when unset', () async {
+      final (api, adapter) = _apiWith(
+        _StubAdapter(
+          json: {'content': <Object>[], 'nextCursor': null, 'hasMore': false},
+          extraHeaders: {
+            'etag': ['"o:root:2"'],
+          },
+        ),
+      );
+
+      final result = await api.getFilesRevalidating(ownerId: 'owner-1');
+
+      expect(
+        adapter.lastRequest?.headers.containsKey('If-None-Match'),
+        isFalse,
+      );
+      expect(result.page, isNotNull);
+      expect(result.etag, '"o:root:2"');
     });
   });
 }

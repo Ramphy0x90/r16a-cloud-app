@@ -47,7 +47,10 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 - OIDC: reuses the existing `r16a-cloud-local` Authentik provider with an added redirect URI
   (see `core/config/env.dart`), not a dedicated client as plan §2 says.
 - 401 handling: `AuthInterceptor` logs out on 401, no refresh-and-retry yet.
-- No Hive cache, no ETag interceptor yet.
+- Persistent cache: Hive (`hive_ce`) only for first pages of folder listings (`HiveListingStore`,
+  wired in `main.dart`; tests use `MemoryListingStore`). ETag revalidation lives in `FilesCache` +
+  `FilesApi.getFilesRevalidating`, not in a Dio interceptor. Backend folder ETag ignores deletes /
+  moves-out, so every such change must go through `FilesCache.invalidateFolder`.
 
 ## Status
 
@@ -69,7 +72,8 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   Delta sync: `FileDeltaSync` polls `/fs/events` every 10s while the Files tab is visible (shell wraps
   tabs in `TickerMode`) and the app is foreground; catches up on resume; changed folders go through
   `FilesController.folderChanged`.
-  Pending: Hive persistent listing cache + ETag interceptor.
+  Listing cache: memory 60s → Hive 5 min → network revalidated with the stored ETag (304 reuses it);
+  cleared on sign-out from `app.dart`.
 - Photos: placeholder screen.
 
 Update this section when a phase step lands.

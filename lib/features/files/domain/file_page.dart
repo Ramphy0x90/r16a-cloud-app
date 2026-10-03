@@ -18,6 +18,12 @@ class FileCursorPage {
     nextCursor: json['nextCursor'] as String?,
     hasMore: json['hasMore'] as bool,
   );
+
+  Map<String, dynamic> toJson() => {
+    'content': [for (final f in content) f.toJson()],
+    'nextCursor': nextCursor,
+    'hasMore': hasMore,
+  };
 }
 
 /// Reads the `content` array of any listing payload — cursor pages and

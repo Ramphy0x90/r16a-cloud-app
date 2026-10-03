@@ -34,6 +34,29 @@ class FilesApi {
     String? cursor,
     int limit = pageSize,
   }) async {
+    final result = await getFilesRevalidating(
+      ownerId: ownerId,
+      parentId: parentId,
+      sortField: sortField,
+      sortDirection: sortDirection,
+      cursor: cursor,
+      limit: limit,
+    );
+    return result.page!;
+  }
+
+  /// [getFiles] with the backend's ETag support: with [ifNoneMatch] set, a
+  /// `304 Not Modified` comes back as `page == null` (keep the copy the
+  /// ETag was stored with). Also returns the response's ETag.
+  Future<({FileCursorPage? page, String? etag})> getFilesRevalidating({
+    required String ownerId,
+    String? parentId,
+    FileSortField sortField = FileSortField.name,
+    FileSortDirection sortDirection = FileSortDirection.asc,
+    String? cursor,
+    int limit = pageSize,
+    String? ifNoneMatch,
+  }) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         '/fs',
@@ -45,8 +68,16 @@ class FilesApi {
           'parentId': ?parentId,
           'cursor': ?cursor,
         },
+        options: Options(
+          headers: {'If-None-Match': ?ifNoneMatch},
+          validateStatus: (status) =>
+              status != null &&
+              (status == 304 || (status >= 200 && status < 300)),
+        ),
       );
-      return FileCursorPage.fromJson(response.data!);
+      final etag = response.headers.value('etag');
+      if (response.statusCode == 304) return (page: null, etag: etag);
+      return (page: FileCursorPage.fromJson(response.data!), etag: etag);
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

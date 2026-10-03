@@ -64,4 +64,22 @@ class FileItem {
         : DateTime.parse(json['takenAt'] as String),
     blurHash: json['blurHash'] as String?,
   );
+
+  /// Same shape as [FileItem.fromJson] reads — used to persist listings.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'description': description,
+    'fsPath': fsPath,
+    'isDirectory': isDirectory,
+    'visibility': visibility,
+    'parentId': parentId,
+    'ownerId': ownerId,
+    'ownerDisplayName': ownerDisplayName,
+    'sharedWithIds': sharedWithIds,
+    'createdAt': createdAt.toIso8601String(),
+    'updatedAt': updatedAt.toIso8601String(),
+    'takenAt': takenAt?.toIso8601String(),
+    'blurHash': blurHash,
+  };
 }

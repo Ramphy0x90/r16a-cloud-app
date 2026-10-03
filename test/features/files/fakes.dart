@@ -49,13 +49,41 @@ FileCursorPage fakePage(List<FileItem> items, {String? nextCursor}) =>
 
 /// One recorded `getFiles` call; complete [response] to answer it.
 class FilesCall {
-  FilesCall(this.parentId, this.cursor, this.sortField, this.sortDirection);
+  FilesCall(
+    this.parentId,
+    this.cursor,
+    this.sortField,
+    this.sortDirection,
+    this.ifNoneMatch,
+  );
 
   final String? parentId;
   final String? cursor;
   final FileSortField sortField;
   final FileSortDirection sortDirection;
-  final response = Completer<FileCursorPage>();
+
+  /// ETag sent for revalidation, if any.
+  final String? ifNoneMatch;
+  final result = Completer<({FileCursorPage? page, String? etag})>();
+
+  /// Answers with a 200 page (and optionally an ETag).
+  late final response = _ResponseHandle(result);
+
+  void notModified({String? etag}) =>
+      result.complete((page: null, etag: etag ?? ifNoneMatch));
+}
+
+class _ResponseHandle {
+  _ResponseHandle(this._result);
+
+  final Completer<({FileCursorPage? page, String? etag})> _result;
+
+  bool get isCompleted => _result.isCompleted;
+
+  void complete(FileCursorPage page, {String? etag}) =>
+      _result.complete((page: page, etag: etag));
+
+  void completeError(Object error) => _result.completeError(error);
 }
 
 /// [FilesApi] whose listing calls stay pending until the test answers them.
@@ -65,18 +93,26 @@ class FakeFilesApi extends FilesApi {
   final calls = <FilesCall>[];
   final sharedCalls = <Completer<List<FileItem>>>[];
 
+  /// Every listing request (first pages and cursor pages) lands here.
   @override
-  Future<FileCursorPage> getFiles({
+  Future<({FileCursorPage? page, String? etag})> getFilesRevalidating({
     required String ownerId,
     String? parentId,
     FileSortField sortField = FileSortField.name,
     FileSortDirection sortDirection = FileSortDirection.asc,
     String? cursor,
     int limit = FilesApi.pageSize,
+    String? ifNoneMatch,
   }) {
-    final call = FilesCall(parentId, cursor, sortField, sortDirection);
+    final call = FilesCall(
+      parentId,
+      cursor,
+      sortField,
+      sortDirection,
+      ifNoneMatch,
+    );
     calls.add(call);
-    return call.response.future;
+    return call.result.future;
   }
 
   /// File ids asked for a thumbnail; answered with an error (no thumbnail)

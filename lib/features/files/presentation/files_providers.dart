@@ -9,6 +9,7 @@ import '../data/file_downloads.dart';
 import '../data/file_uploader.dart';
 import '../data/files_api.dart';
 import '../data/files_cache.dart';
+import '../data/listing_store.dart';
 import '../data/upload_source.dart';
 import '../data/thumbnail_cache.dart';
 import 'file_delta_sync.dart';
@@ -19,10 +20,19 @@ import 'upload_picker.dart';
 
 final filesApiProvider = Provider((ref) => FilesApi(ref.watch(dioProvider)));
 
-/// App-wide like the web's root-provided `FilesCacheService`; keys include
-/// the owner id, so another account never reads these entries.
+/// Persisted listings. In-memory by default (tests); `main()` overrides it
+/// with the Hive store once Hive is initialized.
+final listingStoreProvider = Provider<ListingStore>(
+  (ref) => MemoryListingStore(),
+);
+
+/// App-wide like the web's root-provided `FilesCacheService`. The app
+/// shell clears it (persisted copies included) on sign-out.
 final filesCacheProvider = Provider(
-  (ref) => FilesCache(ref.watch(filesApiProvider)),
+  (ref) => FilesCache(
+    ref.watch(filesApiProvider),
+    store: ref.watch(listingStoreProvider),
+  ),
 );
 
 final filesControllerProvider =
