@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/file_item.dart';
-import 'file_type_icon.dart';
+import 'file_thumbnail.dart';
 
 /// One card of the grid view — mirrors `.file-card` in `grid-view.html`:
-/// media area (icon for now; thumbnails land with the preview step) and a
-/// name footer with the shared badge.
+/// media area and a name footer with the shared badge.
 class FileGridTile extends StatelessWidget {
   const FileGridTile({
     super.key,
@@ -30,11 +29,9 @@ class FileGridTile extends StatelessWidget {
         onTap: onTap,
         child: Column(
           children: [
-            Expanded(
-              child: Center(child: FileTypeIcon(file: file, size: 44)),
-            ),
+            Expanded(child: FileThumbnail(file: file, iconSize: 44)),
             Padding(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Row(
                 children: [
                   Expanded(

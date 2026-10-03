@@ -55,7 +55,9 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 - Dashboard: done, backed by `dashboard_api` + `dashboardProvider`.
 - Files: browse done (plan Phase 4 steps 9–10): `files_api`, 60s memory `files_cache`, `FilesController`
   (tabs, folder stack, sort, cursor paging), grid/list UI, options sheet. Shared tab is a flat list
-  (folders there don't open). Pending: thumbnails/preview (tap opens files — differs from web),
+  (folders there don't open). Thumbnails (`ThumbnailCache`: 400 LRU, 5 min, 4 concurrent) + blurhash
+  via custom `ImageProvider`s in `file_images.dart`; tapping an image opens `FileViewerScreen`
+  (photo_view, swipe between the folder's images). Pending: open videos/other files (needs download),
   mutations, upload/download, delta sync, Hive + ETag.
 - Photos: placeholder screen.
 

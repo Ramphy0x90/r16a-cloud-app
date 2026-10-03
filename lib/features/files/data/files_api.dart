@@ -134,12 +134,33 @@ class FilesApi {
   Future<Uint8List> getThumbnail(
     String id, {
     ThumbnailSize size = ThumbnailSize.small,
+    Duration? receiveTimeout,
   }) async {
     try {
       final response = await _dio.get<List<int>>(
         '/fs/$id/thumbnail',
         queryParameters: {'size': size.name},
-        options: Options(responseType: ResponseType.bytes),
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: receiveTimeout,
+        ),
+      );
+      return Uint8List.fromList(response.data!);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// Whole file content in memory — only for previews. Real downloads to
+  /// disk land with the transfer step.
+  Future<Uint8List> downloadBytes(String id, {Duration? receiveTimeout}) async {
+    try {
+      final response = await _dio.get<List<int>>(
+        '/fs/$id/download',
+        options: Options(
+          responseType: ResponseType.bytes,
+          receiveTimeout: receiveTimeout,
+        ),
       );
       return Uint8List.fromList(response.data!);
     } on DioException catch (e) {

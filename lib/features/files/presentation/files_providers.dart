@@ -5,6 +5,7 @@ import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
 import '../data/files_api.dart';
 import '../data/files_cache.dart';
+import '../data/thumbnail_cache.dart';
 import 'files_controller.dart';
 import 'files_state.dart';
 
@@ -29,3 +30,8 @@ final filesViewModeProvider = Provider.autoDispose<DefaultFileView>((ref) {
       ref.watch(currentUserProvider).value?.preferences.defaultViewMode ??
       DefaultFileView.grid;
 });
+
+/// App-wide like the web's root-provided `ImagePreviewService`.
+final thumbnailCacheProvider = Provider(
+  (ref) => ThumbnailCache(ref.watch(filesApiProvider)),
+);

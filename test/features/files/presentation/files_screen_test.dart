@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_providers.dart';
+import 'package:r16a_cloud_app/features/files/presentation/file_viewer_screen.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_screen.dart';
 import 'package:r16a_cloud_app/features/files/presentation/widgets/file_grid_tile.dart';
 import 'package:r16a_cloud_app/features/files/presentation/widgets/file_list_tile.dart';
@@ -113,5 +114,42 @@ void main() {
     expect(api.calls, hasLength(2));
     await answer(tester, [fakeFile('a')]);
     expect(find.text('a.txt'), findsOneWidget);
+  });
+
+  testWidgets('thumbnails are requested for images only', (tester) async {
+    await pumpScreen(tester);
+    await answer(tester, [
+      fakeFile('photo', extension: 'jpg'),
+      fakeFile('doc', extension: 'pdf'),
+    ]);
+
+    expect(api.thumbnailCalls.map((c) => c.$1), ['photo']);
+  });
+
+  testWidgets('tapping an image opens the viewer on it; other files do not', (
+    tester,
+  ) async {
+    await pumpScreen(tester);
+    await answer(tester, [
+      fakeFile('a', extension: 'png'),
+      fakeFile('doc', extension: 'pdf'),
+      fakeFile('b', extension: 'jpg'),
+    ]);
+
+    await tester.tap(find.text('doc.pdf'));
+    await tester.pump();
+    expect(find.byType(FileViewerScreen), findsNothing);
+
+    await tester.tap(find.text('b.jpg'));
+    // The preview never resolves in tests, so the spinner keeps animating.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final viewer = tester.widget<FileViewerScreen>(
+      find.byType(FileViewerScreen),
+    );
+    expect(viewer.files.map((f) => f.id), ['a', 'b']);
+    expect(viewer.initialIndex, 1);
+    expect(api.downloadCalls, ['b']);
   });
 }

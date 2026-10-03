@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/util/date_format.dart';
 import '../../domain/file_item.dart';
-import 'file_type_icon.dart';
+import 'file_thumbnail.dart';
 
 /// One row of the list view — mirrors `.list-row` in `list-view.html`:
 /// icon, name, then "From" (shared tab) or "Modified", and the shared badge.
@@ -32,12 +32,16 @@ class FileListTile extends StatelessWidget {
             Container(
               width: 38,
               height: 38,
-              alignment: Alignment.center,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: scheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: FileTypeIcon(file: file, size: 20),
+              child: FileThumbnail(
+                file: file,
+                iconSize: 20,
+                includeVideo: false,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(

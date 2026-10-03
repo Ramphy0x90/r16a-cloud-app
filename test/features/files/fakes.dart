@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
@@ -10,23 +11,27 @@ import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_page.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 
-FileItem fakeFile(String id, {bool isDirectory = false, String? parentId}) =>
-    FileItem(
-      id: id,
-      name: isDirectory ? id : '$id.txt',
-      description: null,
-      fsPath: '/$id',
-      isDirectory: isDirectory,
-      visibility: 'PRIVATE',
-      parentId: parentId,
-      ownerId: 'owner-1',
-      ownerDisplayName: 'Owner',
-      sharedWithIds: const [],
-      createdAt: DateTime.utc(2026),
-      updatedAt: DateTime.utc(2026),
-      takenAt: null,
-      blurHash: null,
-    );
+FileItem fakeFile(
+  String id, {
+  bool isDirectory = false,
+  String? parentId,
+  String extension = 'txt',
+}) => FileItem(
+  id: id,
+  name: isDirectory ? id : '$id.$extension',
+  description: null,
+  fsPath: '/$id',
+  isDirectory: isDirectory,
+  visibility: 'PRIVATE',
+  parentId: parentId,
+  ownerId: 'owner-1',
+  ownerDisplayName: 'Owner',
+  sharedWithIds: const [],
+  createdAt: DateTime.utc(2026),
+  updatedAt: DateTime.utc(2026),
+  takenAt: null,
+  blurHash: null,
+);
 
 FileCursorPage fakePage(List<FileItem> items, {String? nextCursor}) =>
     FileCursorPage(
@@ -65,6 +70,31 @@ class FakeFilesApi extends FilesApi {
     final call = FilesCall(parentId, cursor, sortField, sortDirection);
     calls.add(call);
     return call.response.future;
+  }
+
+  /// File ids asked for a thumbnail; answered with an error (no thumbnail)
+  /// unless [thumbnailBytes] is set.
+  final thumbnailCalls = <(String, ThumbnailSize)>[];
+  Uint8List? thumbnailBytes;
+  final downloadCalls = <String>[];
+
+  @override
+  Future<Uint8List> getThumbnail(
+    String id, {
+    ThumbnailSize size = ThumbnailSize.small,
+    Duration? receiveTimeout,
+  }) async {
+    thumbnailCalls.add((id, size));
+    final bytes = thumbnailBytes;
+    if (bytes == null) throw Exception('no thumbnail');
+    return bytes;
+  }
+
+  /// Never completes — previews stay in their loading state.
+  @override
+  Future<Uint8List> downloadBytes(String id, {Duration? receiveTimeout}) {
+    downloadCalls.add(id);
+    return Completer<Uint8List>().future;
   }
 
   @override

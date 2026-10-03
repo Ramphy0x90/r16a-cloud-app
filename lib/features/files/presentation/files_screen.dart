@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/session/user_preferences.dart';
 import '../domain/file_item.dart';
+import 'file_viewer_screen.dart';
 import 'files_providers.dart';
 import 'files_state.dart';
 import 'widgets/file_grid.dart';
@@ -49,8 +50,25 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
   void _onFileTap(FileItem file) {
     if (file.isDirectory) {
       ref.read(filesControllerProvider.notifier).openFolder(file);
+      return;
     }
-    // Opening files lands with the preview step.
+    if (file.isImage) {
+      final images = ref
+          .read(filesControllerProvider)
+          .items
+          .where((f) => f.isImage)
+          .toList();
+      // Root navigator: the viewer covers the dock.
+      Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute<void>(
+          builder: (_) => FileViewerScreen(
+            files: images,
+            initialIndex: images.indexWhere((f) => f.id == file.id),
+          ),
+        ),
+      );
+    }
+    // Videos and other files open once downloads land (transfer step).
   }
 
   Future<void> _refresh() async {
