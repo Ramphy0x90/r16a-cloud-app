@@ -11,3 +11,12 @@ String formatShortDateTime(DateTime dateTime) {
 
   return '$day/$month/$year $hour:$minute';
 }
+
+/// Port of the web files list's `dd/MM/yyyy HH:mm` date pipe format.
+String formatDateTime(DateTime dateTime) {
+  final local = dateTime.toLocal();
+  String two(int n) => n.toString().padLeft(2, '0');
+
+  return '${two(local.day)}/${two(local.month)}/${local.year} '
+      '${two(local.hour)}:${two(local.minute)}';
+}
