@@ -1,0 +1,31 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/network/dio_client.dart';
+import '../../../core/session/session_providers.dart';
+import '../../../core/session/user_preferences.dart';
+import '../data/files_api.dart';
+import '../data/files_cache.dart';
+import 'files_controller.dart';
+import 'files_state.dart';
+
+final filesApiProvider = Provider((ref) => FilesApi(ref.watch(dioProvider)));
+
+/// App-wide like the web's root-provided `FilesCacheService`; keys include
+/// the owner id, so another account never reads these entries.
+final filesCacheProvider = Provider(
+  (ref) => FilesCache(ref.watch(filesApiProvider)),
+);
+
+final filesControllerProvider =
+    NotifierProvider.autoDispose<FilesController, FilesState>(
+      FilesController.new,
+    );
+
+/// The view mode to render: the user's pick in the options sheet, else
+/// `UserPreferences.defaultViewMode` (the web seeds `viewMode` from it).
+final filesViewModeProvider = Provider.autoDispose<DefaultFileView>((ref) {
+  final picked = ref.watch(filesControllerProvider.select((s) => s.viewMode));
+  return picked ??
+      ref.watch(currentUserProvider).value?.preferences.defaultViewMode ??
+      DefaultFileView.grid;
+});

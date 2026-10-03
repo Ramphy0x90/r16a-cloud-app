@@ -1,0 +1,35 @@
+import 'package:flutter/material.dart';
+
+import '../../domain/file_item.dart';
+import 'file_list_tile.dart';
+
+/// List view sliver — mirrors `list-view` (`pages/files/list-view`),
+/// virtualized like its `cdk-virtual-scroll-viewport`.
+class FileList extends StatelessWidget {
+  const FileList({
+    super.key,
+    required this.files,
+    required this.showSharedFrom,
+    required this.onTap,
+  });
+
+  final List<FileItem> files;
+  final bool showSharedFrom;
+  final ValueChanged<FileItem> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverList.builder(
+      itemCount: files.length,
+      itemBuilder: (context, index) {
+        final file = files[index];
+        return FileListTile(
+          key: ValueKey(file.id),
+          file: file,
+          showSharedFrom: showSharedFrom,
+          onTap: () => onTap(file),
+        );
+      },
+    );
+  }
+}
