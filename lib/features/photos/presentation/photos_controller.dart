@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/media/media_providers.dart';
 import '../../../core/model/file_item.dart';
 import '../../../core/session/session_providers.dart';
 import '../domain/photo_year.dart';
@@ -10,12 +13,26 @@ import 'photos_state.dart';
 /// plus shared media grouped by year, merged newest first; each year's own
 /// photos then load lazily, page by page, as its tiles come on screen.
 class PhotosController extends Notifier<PhotosState> {
+  /// Waits for a burst of media changes (e.g. a delta-sync poll touching
+  /// several folders) to settle before reloading.
+  static const refreshDebounce = Duration(seconds: 1);
+
   /// Bumps on each full reload so stale page results are dropped.
   var _generation = 0;
+  Timer? _refreshDebounce;
 
   @override
   PhotosState build() {
     Future.microtask(() => _load().catchError((_) {}));
+    // Uploads / deletes elsewhere in the app: rebuild the timeline quietly,
+    // once per burst of changes.
+    ref.listen(mediaRevisionProvider, (_, _) {
+      _refreshDebounce?.cancel();
+      _refreshDebounce = Timer(refreshDebounce, () {
+        _load(silent: true).catchError((_) {});
+      });
+    });
+    ref.onDispose(() => _refreshDebounce?.cancel());
     return const PhotosState();
   }
 

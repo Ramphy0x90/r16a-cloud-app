@@ -85,3 +85,6 @@ class PhotosState {
   /// Newest year first.
   final List<PhotoYearSection> sections;
 }
+
+/// Hero tag prefix for Photos thumbnails (see `filesHeroPrefix`).
+const photosHeroPrefix = 'photos:';

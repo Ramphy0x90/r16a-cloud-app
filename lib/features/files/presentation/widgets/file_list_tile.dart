@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/media/widgets/file_thumbnail.dart';
 import '../../../../core/model/file_item.dart';
 import '../../../../core/util/date_format.dart';
+import '../files_state.dart';
 import 'selection_check.dart';
 
 /// One row of the list view — mirrors `.list-row` in `list-view.html`:
@@ -53,6 +54,7 @@ class FileListTile extends StatelessWidget {
                 file: file,
                 iconSize: 20,
                 includeVideo: false,
+                heroTag: '$filesHeroPrefix${file.id}',
               ),
             ),
             const SizedBox(width: 12),

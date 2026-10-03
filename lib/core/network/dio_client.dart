@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../config/env.dart';
 import 'auth_interceptor.dart';
+import 'network_status.dart';
 
 /// The shared HTTP client for every call to the `r16a-cloud` backend —
 /// equivalent to the web client's single `HttpClient` instance
@@ -17,7 +18,9 @@ final dioProvider = Provider<Dio>((ref) {
     ),
   );
 
-  dio.interceptors.add(AuthInterceptor(ref));
+  dio.interceptors
+    ..add(AuthInterceptor(ref))
+    ..add(NetworkStatusInterceptor(ref));
 
   return dio;
 });

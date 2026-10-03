@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/media/widgets/file_thumbnail.dart';
 import '../../../../core/model/file_item.dart';
+import '../photos_state.dart';
 
 /// Square grid cell — mirrors `.photo-item` in `photos.html`: thumbnail,
 /// else blurhash, plus the play badge on videos and the "shared with you"
@@ -32,7 +33,11 @@ class PhotoTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              FileThumbnail(file: file, iconSize: 32),
+              FileThumbnail(
+                file: file,
+                iconSize: 32,
+                heroTag: '$photosHeroPrefix${file.id}',
+              ),
               if (shared)
                 Positioned(
                   top: 4,

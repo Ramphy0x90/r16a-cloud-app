@@ -96,6 +96,7 @@ void main() {
     );
     expect(viewer.files.map((f) => f.id), ['a', 'b']);
     expect(viewer.initialIndex, 1);
+    expect(viewer.heroTagPrefix, 'photos:');
   });
 
   testWidgets('a failed timeline offers Retry', (tester) async {

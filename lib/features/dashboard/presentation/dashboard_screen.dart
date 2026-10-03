@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/widgets/status_message.dart';
 import '../domain/dashboard_metrics.dart';
 import 'dashboard_metric_specs.dart';
 import 'dashboard_providers.dart';
@@ -26,38 +27,15 @@ class DashboardScreen extends ConsumerWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         child: dashboardAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stackTrace) =>
-              _ErrorState(onRetry: () => ref.invalidate(dashboardProvider)),
+          error: (error, stackTrace) => StatusMessage(
+            icon: Icons.error_outline_rounded,
+            iconSize: 40,
+            isError: true,
+            message: 'Could not load dashboard data right now.',
+            onRetry: () => ref.invalidate(dashboardProvider),
+          ),
           data: (data) => _DashboardContent(data: data),
         ),
-      ),
-    );
-  }
-}
-
-class _ErrorState extends StatelessWidget {
-  const _ErrorState({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.error_outline_rounded, color: scheme.error, size: 40),
-          const SizedBox(height: 12),
-          Text(
-            'Could not load dashboard data right now.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 12),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
-        ],
       ),
     );
   }

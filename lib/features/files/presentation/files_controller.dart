@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/model/file_item.dart';
+import '../../../core/media/media_providers.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
 import '../domain/file_sort.dart';
@@ -186,13 +187,14 @@ class FilesController extends Notifier<FilesState> {
 
   Future<void> delete(FileItem file) => _deleteAll([file]);
 
-  /// Something outside this controller changed [parentId] (uploads; later
-  /// delta sync): drop its cached pages and, if it is still the open
-  /// folder, reload it in place — the web's
+  /// Something outside this controller changed [parentId] (uploads, delta
+  /// sync): drop its cached pages, tell other screens media changed, and
+  /// if it is still the open folder reload it in place — the web's
   /// `refreshCurrentFolderAfterMutation()`.
   Future<void> folderChanged(String? parentId) async {
     final user = await ref.read(currentUserProvider.future);
     _invalidate(user.id, parentId);
+    ref.read(mediaRevisionProvider.notifier).bump();
     if (!ref.mounted ||
         state.tab != FilesTab.mine ||
         state.currentFolder?.id != parentId) {
@@ -232,6 +234,7 @@ class FilesController extends Notifier<FilesState> {
       }
     }
     if (!ref.mounted) return;
+    ref.read(mediaRevisionProvider.notifier).bump();
 
     final ids = {for (final f in files) f.id};
     state = state.copyWith(

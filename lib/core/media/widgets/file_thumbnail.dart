@@ -17,10 +17,14 @@ class FileThumbnail extends ConsumerWidget {
     required this.file,
     required this.iconSize,
     this.includeVideo = true,
+    this.heroTag,
   });
 
   final FileItem file;
   final double iconSize;
+
+  /// Flies the thumbnail into `FileViewerScreen` (same tag there).
+  final Object? heroTag;
 
   /// The web list view only previews images; the grid previews videos too.
   final bool includeVideo;
@@ -44,13 +48,18 @@ class FileThumbnail extends ConsumerWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        Image(
-          image: FileThumbnailImage(file.id, ref.watch(thumbnailCacheProvider)),
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-          frameBuilder: (context, child, frame, wasSynchronouslyLoaded) =>
-              frame == null ? fallback : child,
-          errorBuilder: (context, error, stackTrace) => fallback,
+        _withHero(
+          Image(
+            image: FileThumbnailImage(
+              file.id,
+              ref.watch(thumbnailCacheProvider),
+            ),
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            frameBuilder: (context, child, frame, wasSynchronouslyLoaded) =>
+                frame == null ? fallback : child,
+            errorBuilder: (context, error, stackTrace) => fallback,
+          ),
         ),
         if (file.isVideo && includeVideo)
           Center(
@@ -64,5 +73,10 @@ class FileThumbnail extends ConsumerWidget {
           ),
       ],
     );
+  }
+
+  Widget _withHero(Widget child) {
+    final tag = heroTag;
+    return tag == null ? child : Hero(tag: tag, child: child);
   }
 }

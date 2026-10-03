@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/core/network/api_exception.dart';
+
 import 'package:r16a_cloud_app/features/files/data/files_cache.dart';
 import 'package:r16a_cloud_app/features/files/data/listing_store.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
@@ -135,6 +137,38 @@ void main() {
       await _settle();
 
       expect(store.entries, isEmpty);
+    });
+
+    test('offline, a stored copy of any age is served', () async {
+      await loadRoot(etag: '"v1"');
+      now = now.add(const Duration(hours: 3));
+      cache = restart();
+
+      final page = cache.getFirstPage(ownerId: 'o');
+      await _settle();
+      api.calls.last.response.completeError(
+        const ApiException('Could not reach the server.'),
+      );
+
+      expect((await page).content.single.id, 'a');
+      // Not kept in memory: the next request goes to the network again.
+      cache.getFirstPage(ownerId: 'o');
+      await _settle();
+      expect(api.calls, hasLength(3));
+    });
+
+    test('a server error is not hidden by the stored copy', () async {
+      await loadRoot();
+      now = now.add(const Duration(minutes: 6));
+      cache = restart();
+
+      final page = cache.getFirstPage(ownerId: 'o');
+      await _settle();
+      api.calls.last.response.completeError(
+        const ApiException('boom', statusCode: 500),
+      );
+
+      await expectLater(page, throwsA(isA<ApiException>()));
     });
 
     test('clear wipes the store (sign-out)', () async {

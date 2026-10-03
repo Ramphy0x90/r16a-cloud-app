@@ -48,8 +48,11 @@ class FakePhotosApi extends PhotosApi {
   Object? sharedError;
   final calls = <PhotosCall>[];
 
+  var yearsCalls = 0;
+
   @override
   Future<List<PhotoYear>> getPhotoYears(String ownerId) async {
+    yearsCalls++;
     if (yearsError case final e?) throw e;
     return years;
   }

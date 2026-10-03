@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/core/media/media_providers.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
 import 'package:r16a_cloud_app/features/photos/domain/photo_year.dart';
 import 'package:r16a_cloud_app/features/photos/presentation/photos_controller.dart';
@@ -155,5 +156,22 @@ void main() {
     await _settle();
 
     expect(section(2025).own, isEmpty);
+  });
+
+  test('media changes elsewhere reload the timeline once per burst', () async {
+    api = FakePhotosApi(years: const [PhotoYear(year: 2025, count: 1)]);
+    await start();
+    expect(api.yearsCalls, 1);
+
+    final revision = container.read(mediaRevisionProvider.notifier);
+    revision.bump();
+    revision.bump();
+    revision.bump();
+    await Future<void>.delayed(
+      PhotosController.refreshDebounce + const Duration(milliseconds: 100),
+    );
+    await _settle();
+
+    expect(api.yearsCalls, 2);
   });
 }

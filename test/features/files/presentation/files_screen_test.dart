@@ -163,6 +163,12 @@ void main() {
     );
     expect(viewer.files.map((f) => f.id), ['a', 'b']);
     expect(viewer.initialIndex, 1);
+    expect(viewer.heroTagPrefix, 'files:');
+    // The tapped tile carries the matching tag.
+    expect(
+      find.byWidgetPredicate((w) => w is Hero && w.tag == 'files:b'),
+      findsWidgets,
+    );
     expect(media.downloadCalls, ['b']);
   });
 }

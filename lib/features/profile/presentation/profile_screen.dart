@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/auth/auth_controller.dart';
+import '../../../core/cache/clear_caches.dart';
 import '../../../core/session/current_user.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
+import '../../../core/widgets/status_message.dart';
 import 'profile_save_controller.dart';
 import 'widgets/profile_auth_card.dart';
 import 'widgets/profile_identity_card.dart';
 import 'widgets/profile_preferences_card.dart';
+import 'widgets/profile_storage_card.dart';
 
 /// Account screen, ported from the web client's `pages/profile`: identity
 /// card, preferences, and sign-out.
@@ -23,41 +26,14 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Profile')),
       body: userAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stackTrace) => _LoadError(
+        error: (error, stackTrace) => StatusMessage(
+          icon: Icons.error_outline_rounded,
+          iconSize: 40,
+          isError: true,
+          message: 'Could not load profile details right now.',
           onRetry: () => ref.invalidate(currentUserProvider),
         ),
         data: (user) => _ProfileContent(user: user),
-      ),
-    );
-  }
-}
-
-class _LoadError extends StatelessWidget {
-  const _LoadError({required this.onRetry});
-
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.error_outline_rounded, color: scheme.error, size: 40),
-            const SizedBox(height: 12),
-            Text(
-              'Could not load profile details right now.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: scheme.onSurfaceVariant),
-            ),
-            const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
-          ],
-        ),
       ),
     );
   }
@@ -109,6 +85,8 @@ class _ProfileContent extends ConsumerWidget {
             style: TextStyle(color: scheme.error, fontSize: 13),
           ),
         ],
+        const SizedBox(height: 16),
+        ProfileStorageCard(onClearCache: ref.read(clearCachesProvider)),
         const SizedBox(height: 16),
         ProfileAuthCard(
           onLogout: () => ref.read(authControllerProvider.notifier).logout(),

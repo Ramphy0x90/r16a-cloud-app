@@ -93,3 +93,7 @@ class FilesState {
     selectedIds: selectedIds ?? this.selectedIds,
   );
 }
+
+/// Hero tag prefix for Files thumbnails (Photos uses its own: both tabs
+/// stay mounted, and tags must be unique on screen).
+const filesHeroPrefix = 'files:';

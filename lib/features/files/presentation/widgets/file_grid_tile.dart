@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/media/widgets/file_thumbnail.dart';
 import '../../../../core/model/file_item.dart';
+import '../files_state.dart';
 import 'selection_check.dart';
 
 /// One card of the grid view — mirrors `.file-card` in `grid-view.html`:
@@ -45,7 +46,13 @@ class FileGridTile extends StatelessWidget {
           children: [
             Column(
               children: [
-                Expanded(child: FileThumbnail(file: file, iconSize: 44)),
+                Expanded(
+                  child: FileThumbnail(
+                    file: file,
+                    iconSize: 44,
+                    heroTag: '$filesHeroPrefix${file.id}',
+                  ),
+                ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                   child: Row(

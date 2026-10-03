@@ -22,7 +22,7 @@ class LoginScreen extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'R16a Cloud',
+                  'Domovoy',
                   style: TextStyle(
                     fontFamily: 'Sixtyfour',
                     fontSize: 28,

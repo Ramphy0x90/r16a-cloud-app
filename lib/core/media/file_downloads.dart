@@ -164,6 +164,22 @@ class FileDownloads {
     return SavedDownload(path: shared, inDownloads: true);
   }
 
+  /// Deletes the temporary copies made by [fetchForOpening].
+  Future<void> clearOpenedFiles() async {
+    try {
+      final probe = await DownloadTask(
+        url: 'https://localhost',
+        filename: 'probe',
+        directory: 'open',
+        baseDirectory: BaseDirectory.temporary,
+      ).filePath();
+      final dir = File(probe).parent;
+      if (await dir.exists()) await dir.delete(recursive: true);
+    } catch (_) {
+      // Nothing to clear, or storage unavailable.
+    }
+  }
+
   /// Hands [path] to the system "open with" flow. `false` when no app can.
   Future<bool> open(String path) => _downloader.openFile(filePath: path);
 

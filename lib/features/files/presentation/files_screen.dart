@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/model/file_item.dart';
 import '../../../core/session/user_preferences.dart';
+import '../../../core/widgets/status_message.dart';
 import 'file_actions.dart';
 import 'file_delta_sync.dart';
 import 'files_providers.dart';
@@ -10,7 +12,6 @@ import 'files_state.dart';
 import 'widgets/file_grid.dart';
 import 'widgets/file_list.dart';
 import 'widgets/file_options_sheet.dart';
-import 'widgets/files_message.dart';
 import 'widgets/files_tab_switcher.dart';
 import 'widgets/upload_banners.dart';
 
@@ -91,6 +92,7 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
   void _onFileTap(FileItem file) {
     final controller = ref.read(filesControllerProvider.notifier);
     if (ref.read(filesControllerProvider).selectionMode) {
+      HapticFeedback.selectionClick();
       controller.toggleSelected(file);
     } else if (file.isDirectory) {
       controller.openFolder(file);
@@ -101,6 +103,7 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
 
   void _onFileLongPress(FileItem file) {
     if (ref.read(filesControllerProvider).selectionMode) {
+      HapticFeedback.selectionClick();
       ref.read(filesControllerProvider.notifier).toggleSelected(file);
     } else {
       _actions.showMenu(file);
@@ -272,7 +275,7 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
     final Widget content;
     if (state.items.isEmpty) {
       final message = state.error != null
-          ? FilesMessage(
+          ? StatusMessage(
               icon: Icons.error_outline_rounded,
               title: 'Something went wrong',
               message: 'Could not load files right now.',
@@ -280,12 +283,12 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
               onRetry: ref.read(filesControllerProvider.notifier).retry,
             )
           : state.tab == FilesTab.shared
-          ? const FilesMessage(
+          ? const StatusMessage(
               icon: Icons.people_outline,
               title: 'Nothing shared with you yet',
               message: 'Files other users share with you will appear here',
             )
-          : const FilesMessage(
+          : const StatusMessage(
               icon: Icons.cloud_outlined,
               title: 'No files yet',
               message: 'Upload files or create a folder to get started',

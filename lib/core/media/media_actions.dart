@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../logging/app_logger.dart';
 import '../model/file_item.dart';
 import 'file_downloads.dart';
 import 'file_viewer_screen.dart';
@@ -12,13 +13,15 @@ import 'widgets/download_progress_dialog.dart';
 // with a snackbar on the nearest messenger.
 
 /// Opens [file]: images in the in-app viewer (swiping through [gallery],
-/// which should contain [file]); everything else — videos included —
+/// which should contain [file]; thumbnails tagged `'$heroTagPrefix$id'`
+/// fly in); everything else — videos included —
 /// fetched to a temporary copy and handed to the system "open with".
 Future<void> openMediaFile(
   BuildContext context,
   WidgetRef ref,
   FileItem file, {
   required List<FileItem> gallery,
+  String? heroTagPrefix,
 }) async {
   if (file.isImage) {
     final images = gallery.where((f) => f.isImage).toList();
@@ -29,6 +32,7 @@ Future<void> openMediaFile(
         builder: (_) => FileViewerScreen(
           files: index < 0 ? [file] : images,
           initialIndex: index < 0 ? 0 : index,
+          heroTagPrefix: heroTagPrefix,
         ),
       ),
     );
@@ -73,8 +77,8 @@ Future<void> saveMediaFiles(
     }
   } on DownloadCancelled {
     // Cancelled from the notification.
-  } catch (e) {
-    debugPrint('Download failed: $e');
+  } catch (e, stack) {
+    AppLogger.error(e, stack, 'Download failed');
     _snack(
       messenger,
       e is DownloadFailure && e.message == 'Storage permission denied.'
@@ -146,10 +150,10 @@ Future<String?> _fetchWithProgress(
     return path;
   } on DownloadCancelled {
     return null; // Dialog already closed by Cancel.
-  } catch (e) {
+  } catch (e, stack) {
     if (cancelled) return null;
     navigator.pop();
-    debugPrint('Fetching ${file.name} failed: $e');
+    AppLogger.error(e, stack, 'Fetching ${file.name} failed');
     _snack(messenger, 'Could not open the file.');
     return null;
   }

@@ -3,11 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/auth/auth_controller.dart';
 import '../core/auth/auth_state.dart';
-import '../core/media/media_providers.dart';
+import '../core/cache/clear_caches.dart';
 import '../core/session/session_providers.dart';
 import '../core/session/user_preferences.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/files/presentation/files_providers.dart';
 import 'shell/home_shell.dart';
 import 'theme/app_theme.dart';
 
@@ -18,13 +17,12 @@ class R16aCloudApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final status = ref.watch(authControllerProvider.select((s) => s.status));
 
-    // Signing out drops every cached file listing (memory and disk) and
-    // thumbnail, so the next account never sees them.
+    // Signing out drops every local cache (listings, thumbnails, opened
+    // files), so the next account never sees them.
     ref.listen(authControllerProvider.select((s) => s.status), (prev, next) {
       if (prev == AuthStatus.authenticated &&
           next == AuthStatus.unauthenticated) {
-        ref.read(filesCacheProvider).clear();
-        ref.read(thumbnailCacheProvider).clear();
+        ref.read(clearCachesProvider)();
       }
     });
 
@@ -43,7 +41,7 @@ class R16aCloudApp extends ConsumerWidget {
         : ThemeMode.system;
 
     return MaterialApp(
-      title: 'R16a Cloud',
+      title: 'Domovoy',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

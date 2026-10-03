@@ -77,7 +77,14 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 - Photos: done (plan Phase 8 step 18): `PhotosApi` (`/photos/years`, `/photos`, shared media via
   `/fs/shared-with-me`), `PhotosController` (year sections, lazy pages), grid with placeholder tiles that
   request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Viewer has
-  Download + "Share via…" (step 19). Pending: auto-refresh after uploads.
+  Download + "Share via…" (step 19). Refreshes itself (debounced) on `mediaRevisionProvider` bumps.
+- Phase 9 (partial): user-visible name **Domovoy** (internal name stays R16a Cloud); `AppLogger`
+  (core/logging) catches all errors, `AppLogger.reporter` is the hook for a crash service; offline
+  detection from real traffic (`NetworkStatusInterceptor`) + banner above the dock, Files serves stored
+  listings of any age while offline; Profile "Clear cache" (`clearCachesProvider`, extended in
+  `main.dart`, also run on sign-out); shared `StatusMessage` for empty/error states; haptics on
+  selection/delete; hero thumbnail → viewer (`filesHeroPrefix` / `photosHeroPrefix`).
+  Deferred by user: launcher icon/splash artwork, crash-reporting service.
 
 Update this section when a phase step lands.
 
@@ -88,6 +95,7 @@ lib/
   app/        app.dart (MaterialApp, auth gate, theme mode), shell/ (dock), theme/
   core/       auth/, config/env.dart, network/ (dio, interceptor, ApiException),
               session/ (CurrentUser, currentUserProvider, users list), util/, widgets/,
+              logging/ (AppLogger), cache/ (clearCachesProvider),
               model/ (FileItem — shared DTO),
               media/ (MediaApi: thumbnails/bytes/download links, ThumbnailCache, image
                       providers, FileViewerScreen, FileDownloads, FileThumbnail,

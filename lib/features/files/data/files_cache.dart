@@ -1,3 +1,4 @@
+import '../../../core/network/api_exception.dart';
 import '../domain/file_page.dart';
 import '../domain/file_sort.dart';
 import 'files_api.dart';
@@ -24,6 +25,8 @@ class _CacheEntry {
 /// delete or move-out doesn't change. That is safe here only because every
 /// such change goes through [invalidateFolder] (own mutations and delta
 /// sync's events), which drops the stored copy and its ETag together.
+///
+/// Offline, a stored copy of any age is served rather than failing.
 class FilesCache {
   FilesCache(this._api, {ListingStore? store, DateTime Function()? now})
     : _store = store ?? MemoryListingStore(),
@@ -142,7 +145,18 @@ class FilesCache {
       return stored.page;
     }
 
-    final result = await fetch(stored?.etag);
+    final ({FileCursorPage? page, String? etag}) result;
+    try {
+      result = await fetch(stored?.etag);
+    } on ApiException catch (e) {
+      // Server unreachable (no HTTP status): an old copy beats an error
+      // screen. Not kept in memory, so it's refetched once back online.
+      if (stored != null && e.statusCode == null) {
+        _entriesByKey.remove(key);
+        return stored.page;
+      }
+      rethrow;
+    }
     final page = result.page ?? stored?.page;
     if (page == null) {
       // 304 is only possible when an ETag was sent, i.e. with a copy.

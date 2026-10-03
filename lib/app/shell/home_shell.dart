@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'dock.dart';
 import 'dock_destination.dart';
+import 'offline_banner.dart';
 
 /// Root authenticated shell: keeps every tab alive in an [IndexedStack]
 /// and hosts the floating [Dock].
@@ -28,9 +29,15 @@ class _HomeShellState extends State<HomeShell> {
             TickerMode(enabled: i == _index, child: d.screen),
         ],
       ),
-      bottomNavigationBar: Dock(
-        currentIndex: _index,
-        onSelected: (i) => setState(() => _index = i),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const OfflineBanner(),
+          Dock(
+            currentIndex: _index,
+            onSelected: (i) => setState(() => _index = i),
+          ),
+        ],
       ),
     );
   }

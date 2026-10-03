@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/media/media_actions.dart';
 import '../../../core/model/file_item.dart';
+import '../../../core/widgets/status_message.dart';
 import 'photos_providers.dart';
 import 'photos_state.dart';
 import 'widgets/photo_placeholder_tile.dart';
@@ -29,11 +30,16 @@ class PhotosScreen extends ConsumerWidget {
         PhotosState(loading: true) => const Center(
           child: CircularProgressIndicator(),
         ),
-        PhotosState(error: != null) => _Message(
-          icon: Icons.error_outline_rounded,
-          title: 'Something went wrong',
-          message: 'Could not load photos right now.',
-          onRetry: ref.read(photosControllerProvider.notifier).retry,
+        PhotosState(error: != null) => Padding(
+          // Keep content clear of the floating dock.
+          padding: const EdgeInsets.only(bottom: 120),
+          child: StatusMessage(
+            icon: Icons.error_outline_rounded,
+            title: 'Something went wrong',
+            message: 'Could not load photos right now.',
+            isError: true,
+            onRetry: ref.read(photosControllerProvider.notifier).retry,
+          ),
         ),
         PhotosState(sections: []) => _refreshable(
           context,
@@ -41,10 +47,13 @@ class PhotosScreen extends ConsumerWidget {
           slivers: const [
             SliverFillRemaining(
               hasScrollBody: false,
-              child: _Message(
-                icon: Icons.photo_library_outlined,
-                title: 'No photos yet',
-                message: 'Upload photos or videos to see them here',
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 120),
+                child: StatusMessage(
+                  icon: Icons.photo_library_outlined,
+                  title: 'No photos yet',
+                  message: 'Upload photos or videos to see them here',
+                ),
               ),
             ),
           ],
@@ -98,8 +107,13 @@ class PhotosScreen extends ConsumerWidget {
     final ownLoaded = section.own.length;
     final sharedStart = ownLoaded + section.pendingOwn;
 
-    void open(FileItem file) =>
-        openMediaFile(context, ref, file, gallery: section.loaded);
+    void open(FileItem file) => openMediaFile(
+      context,
+      ref,
+      file,
+      gallery: section.loaded,
+      heroTagPrefix: photosHeroPrefix,
+    );
 
     return [
       SliverToBoxAdapter(
@@ -141,53 +155,5 @@ class PhotosScreen extends ConsumerWidget {
         },
       ),
     ];
-  }
-}
-
-class _Message extends StatelessWidget {
-  const _Message({
-    required this.icon,
-    required this.title,
-    required this.message,
-    this.onRetry,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-  final VoidCallback? onRetry;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Padding(
-        // Keep content clear of the floating dock.
-        padding: const EdgeInsets.fromLTRB(32, 0, 32, 120),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 56,
-              color: onRetry != null ? scheme.error : scheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: scheme.onSurfaceVariant),
-            ),
-            if (onRetry != null) ...[
-              const SizedBox(height: 12),
-              TextButton(onPressed: onRetry, child: const Text('Retry')),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }

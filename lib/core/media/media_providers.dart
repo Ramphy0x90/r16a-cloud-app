@@ -22,3 +22,17 @@ final fileDownloadsProvider = Provider(
     ref.read(authControllerProvider.notifier).getValidAccessToken,
   ),
 );
+
+/// Bumped whenever the user's media changes from inside the app — uploads,
+/// deletes, changes delta sync picks up — so screens showing it elsewhere
+/// (Photos) can refresh. Features can't call each other; they meet here.
+class MediaRevision extends Notifier<int> {
+  @override
+  int build() => 0;
+
+  void bump() => state++;
+}
+
+final mediaRevisionProvider = NotifierProvider<MediaRevision, int>(
+  MediaRevision.new,
+);

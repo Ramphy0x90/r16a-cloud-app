@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:r16a_cloud_app/core/network/api_exception.dart';
+import 'package:r16a_cloud_app/core/media/media_providers.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 import 'package:r16a_cloud_app/features/files/presentation/files_controller.dart';
@@ -156,6 +157,8 @@ void main() {
       await controller().delete(state().items.first);
 
       expect(api.deleted, ['a']);
+      // Photos and other media views get told.
+      expect(container.read(mediaRevisionProvider), 1);
       expect(ids(), ['b']);
     });
 

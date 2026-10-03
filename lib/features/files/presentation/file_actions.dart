@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/logging/app_logger.dart';
 import '../../../core/media/media_actions.dart';
 import '../../../core/model/file_item.dart';
 import '../../../core/network/api_exception.dart';
@@ -9,6 +11,7 @@ import '../../../core/widgets/text_input_dialog.dart';
 import '../data/upload_source.dart';
 import 'files_controller.dart';
 import 'files_providers.dart';
+import 'files_state.dart';
 import 'widgets/file_context_sheet.dart';
 import 'widgets/share_sheet.dart';
 import 'widgets/upload_source_sheet.dart';
@@ -54,7 +57,7 @@ class FileActions {
     } catch (e, stack) {
       // The snackbar stays generic; the log says why (e.g. a missing
       // native plugin after hot reload, or a denied permission).
-      debugPrint('Upload picker failed: $e\n$stack');
+      AppLogger.error(e, stack, 'Upload picker failed');
       _snack('Could not open the picker.');
       return;
     }
@@ -106,6 +109,7 @@ class FileActions {
       destructive: true,
     );
     if (!confirmed) return;
+    HapticFeedback.mediumImpact();
     await _run(() => _controller.delete(file), 'Could not delete.');
   }
 
@@ -131,6 +135,7 @@ class FileActions {
       destructive: true,
     );
     if (!confirmed) return;
+    HapticFeedback.mediumImpact();
     await _run(_controller.deleteSelected, 'Could not delete all items.');
   }
 
@@ -141,6 +146,7 @@ class FileActions {
     _ref,
     file,
     gallery: _ref.read(filesControllerProvider).items,
+    heroTagPrefix: filesHeroPrefix,
   );
 
   /// Saves to the device (see [saveMediaFiles]) and leaves selection

@@ -18,11 +18,16 @@ class FileViewerScreen extends ConsumerStatefulWidget {
     super.key,
     required this.files,
     required this.initialIndex,
+    this.heroTagPrefix,
   });
 
   /// Images of the current listing, in listing order.
   final List<FileItem> files;
   final int initialIndex;
+
+  /// Tiles that opened the viewer tag their thumbnail `'$prefix$fileId'`;
+  /// pages use the same tag so the thumbnail flies in and back out.
+  final String? heroTagPrefix;
 
   @override
   ConsumerState<FileViewerScreen> createState() => _FileViewerScreenState();
@@ -81,9 +86,12 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
           onPageChanged: (index) => setState(() => _index = index),
           itemBuilder: (context, index) {
             final file = widget.files[index];
+            final prefix = widget.heroTagPrefix;
+            final heroTag = prefix == null ? null : '$prefix${file.id}';
             final placeholder = _Placeholder(
               file: file,
               thumbnail: FileThumbnailImage(file.id, thumbnails),
+              heroTag: heroTag,
             );
 
             return PhotoView(
@@ -94,6 +102,11 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
               ),
               minScale: PhotoViewComputedScale.contained,
               maxScale: PhotoViewComputedScale.covered * 4,
+              // The placeholder (thumbnail) and the loaded image are never
+              // on screen together, so they can share the hero tag.
+              heroAttributes: heroTag == null
+                  ? null
+                  : PhotoViewHeroAttributes(tag: heroTag),
               loadingBuilder: (context, event) => placeholder,
               errorBuilder: (context, error, stackTrace) => const Center(
                 child: Text(
@@ -112,10 +125,15 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
 /// What the web modal shows while `loading`: the cached thumbnail if any,
 /// else the blurhash, with a spinner on top.
 class _Placeholder extends StatelessWidget {
-  const _Placeholder({required this.file, required this.thumbnail});
+  const _Placeholder({
+    required this.file,
+    required this.thumbnail,
+    required this.heroTag,
+  });
 
   final FileItem file;
   final ImageProvider thumbnail;
+  final Object? heroTag;
 
   @override
   Widget build(BuildContext context) {
@@ -125,16 +143,24 @@ class _Placeholder extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (hash != null) BlurHash(hash: hash, imageFit: BoxFit.contain),
-        Image(
-          image: thumbnail,
-          fit: BoxFit.contain,
-          gaplessPlayback: true,
-          errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+        _hero(
+          Image(
+            image: thumbnail,
+            fit: BoxFit.contain,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) =>
+                const SizedBox.shrink(),
+          ),
         ),
         const Center(
           child: CircularProgressIndicator(color: AppColors.darkForeground),
         ),
       ],
     );
+  }
+
+  Widget _hero(Widget child) {
+    final tag = heroTag;
+    return tag == null ? child : Hero(tag: tag, child: child);
   }
 }
