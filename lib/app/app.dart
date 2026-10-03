@@ -6,6 +6,7 @@ import '../core/auth/auth_state.dart';
 import '../core/cache/clear_caches.dart';
 import '../core/session/session_providers.dart';
 import '../core/session/user_preferences.dart';
+import '../core/widgets/app_logo.dart';
 import '../features/auth/presentation/login_screen.dart';
 import 'shell/home_shell.dart';
 import 'theme/app_theme.dart';
@@ -62,6 +63,21 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return const Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AppLogo(size: 72),
+            SizedBox(height: 24),
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2.5),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
