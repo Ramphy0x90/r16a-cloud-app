@@ -11,6 +11,7 @@ import 'widgets/file_list.dart';
 import 'widgets/file_options_sheet.dart';
 import 'widgets/files_message.dart';
 import 'widgets/files_tab_switcher.dart';
+import 'widgets/upload_banners.dart';
 
 /// Ported from the web client's `pages/files` + `files-toolbar`: My files /
 /// Shared tabs, folder navigation, grid/list views, cursor paging, and the
@@ -106,7 +107,12 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
       },
       child: Scaffold(
         appBar: _buildAppBar(context, state),
-        body: _buildBody(state, viewMode),
+        body: Column(
+          children: [
+            const _UploadBanners(),
+            Expanded(child: _buildBody(state, viewMode)),
+          ],
+        ),
       ),
     );
   }
@@ -117,12 +123,22 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
 
     final folder = state.currentFolder;
     final actions = [
-      if (!state.readOnly)
+      if (!state.readOnly) ...[
         IconButton(
           onPressed: _actions.createFolder,
           icon: const Icon(Icons.create_new_folder_outlined),
           tooltip: 'New folder',
         ),
+        IconButton(
+          // One batch at a time, like the web overlay.
+          onPressed:
+              ref.watch(uploadControllerProvider.select((s) => s.uploading))
+              ? null
+              : _actions.upload,
+          icon: const Icon(Icons.upload_rounded),
+          tooltip: 'Upload',
+        ),
+      ],
       IconButton(
         onPressed: () => showFileOptionsSheet(context),
         icon: const Icon(Icons.more_vert_rounded),
@@ -289,6 +305,31 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 120)),
         ],
       ),
+    );
+  }
+}
+
+/// Upload progress / failures — watched on their own so progress ticks
+/// don't rebuild the file list.
+class _UploadBanners extends ConsumerWidget {
+  const _UploadBanners();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final upload = ref.watch(uploadControllerProvider);
+    final progress = upload.progress;
+
+    return Column(
+      children: [
+        if (progress != null) UploadProgressBanner(progress: progress),
+        if (upload.errors.isNotEmpty)
+          UploadErrorsBanner(
+            errors: upload.errors,
+            onDismiss: ref
+                .read(uploadControllerProvider.notifier)
+                .dismissErrors,
+          ),
+      ],
     );
   }
 }

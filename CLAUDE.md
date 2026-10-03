@@ -60,8 +60,10 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   (photo_view, swipe between the folder's images). Mutations: create folder, rename, share
   (`shareCandidatesProvider`, `SessionApi.listUsers`), delete + bulk delete, selection mode
   (options "Select" or long-press menu); prompts/snackbars in `file_actions.dart`, cache invalidated
-  on every mutation. Pending: open videos/other files (needs download), upload/download, delta sync,
-  Hive + ETag.
+  on every mutation. Upload: `FileUploader` (multipart ≤ 100 MB, else chunked init/parts/complete,
+  streamed via `UploadSource.openRead`), `UploadController` (2 concurrent, inline progress + errors
+  banners), pickers in `upload_picker.dart` (file_picker / image_picker, behind `uploadPickerProvider`).
+  Pending: download + open videos/other files, delta sync, Hive + ETag.
 - Photos: placeholder screen.
 
 Update this section when a phase step lands.

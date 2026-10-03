@@ -7,13 +7,16 @@ import '../domain/file_event.dart';
 import '../domain/file_item.dart';
 import '../domain/file_page.dart';
 import '../domain/file_sort.dart';
+import 'upload_source.dart';
 
 /// Thumbnail sizes accepted by `GET /api/fs/{id}/thumbnail`.
 enum ThumbnailSize { small, medium, large }
 
+/// Mirrors `ChunkUploadInitResponse` — the server picks the part size.
+typedef ChunkUploadSession = ({String uploadId, int partSizeBytes});
+
 /// Mirrors the web client's `FileService` (`services/file.service.ts`) —
-/// the `/api/fs` endpoints. Upload and download land with their own phase
-/// steps.
+/// the `/api/fs` endpoints. Disk downloads land with their own step.
 class FilesApi {
   FilesApi(this._dio);
 
@@ -163,6 +166,122 @@ class FilesApi {
         ),
       );
       return Uint8List.fromList(response.data!);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  // ── Uploads ─────────────────────────────────────────────────────────────
+  // The server finishes uploads with blurhash / metadata work, so responses
+  // can take a while: generous receive timeouts on the finishing calls.
+
+  static const _finishTimeout = Duration(minutes: 5);
+
+  /// `POST /fs/upload` (multipart). [onProgress] gets file bytes sent,
+  /// scaled from Dio's multipart totals.
+  Future<FileItem> uploadMultipart({
+    required String ownerId,
+    String? parentId,
+    required UploadSource source,
+    void Function(int sentBytes)? onProgress,
+  }) async {
+    try {
+      final form = FormData.fromMap({
+        'ownerId': ownerId,
+        'parentId': ?parentId,
+        'file': MultipartFile.fromStream(
+          () => source.openRead(0, source.size),
+          source.size,
+          filename: source.name,
+        ),
+      });
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/fs/upload',
+        data: form,
+        options: Options(receiveTimeout: _finishTimeout),
+        onSendProgress: onProgress == null
+            ? null
+            : (sent, total) =>
+                  onProgress(total <= 0 ? 0 : (sent * source.size) ~/ total),
+      );
+      return FileItem.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// `POST /fs/upload/init` — same body as the web's `uploadFileChunked`.
+  Future<ChunkUploadSession> initChunkedUpload({
+    required String ownerId,
+    String? parentId,
+    required String fileName,
+    required int totalSize,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/fs/upload/init',
+        data: {
+          'ownerId': ownerId,
+          'parentId': parentId,
+          'fileName': fileName,
+          'totalSize': totalSize,
+          'partSizeBytes': null,
+          'description': null,
+          'visibility': null,
+          'sharedWithIds': null,
+        },
+      );
+      return (
+        uploadId: response.data!['uploadId'] as String,
+        partSizeBytes: (response.data!['partSizeBytes'] as num).toInt(),
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// `PUT /fs/upload/{id}/part` — raw octet-stream body of exactly
+  /// [length] bytes; parts must be sent in order.
+  Future<void> uploadPart(
+    String uploadId,
+    Stream<List<int>> data,
+    int length, {
+    void Function(int sentBytes)? onProgress,
+  }) async {
+    try {
+      await _dio.put<void>(
+        '/fs/upload/$uploadId/part',
+        data: data,
+        options: Options(
+          contentType: 'application/octet-stream',
+          headers: {Headers.contentLengthHeader: length},
+        ),
+        onSendProgress: onProgress == null
+            ? null
+            : (sent, _) => onProgress(sent),
+      );
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  Future<FileItem> completeChunkedUpload(String uploadId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/fs/upload/$uploadId/complete',
+        data: const <String, dynamic>{},
+        options: Options(receiveTimeout: _finishTimeout),
+      );
+      return FileItem.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
+  /// `DELETE /fs/upload/{id}` — drops a failed session's partial data.
+  Future<void> cancelChunkedUpload(String uploadId) async {
+    try {
+      await _dio.delete<void>('/fs/upload/$uploadId');
     } on DioException catch (e) {
       throw ApiException.fromDioException(e);
     }

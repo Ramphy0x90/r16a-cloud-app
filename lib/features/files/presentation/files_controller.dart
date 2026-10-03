@@ -186,6 +186,21 @@ class FilesController extends Notifier<FilesState> {
 
   Future<void> delete(FileItem file) => _deleteAll([file]);
 
+  /// Something outside this controller changed [parentId] (uploads; later
+  /// delta sync): drop its cached pages and, if it is still the open
+  /// folder, reload it in place — the web's
+  /// `refreshCurrentFolderAfterMutation()`.
+  Future<void> folderChanged(String? parentId) async {
+    final user = await ref.read(currentUserProvider.future);
+    _invalidate(user.id, parentId);
+    if (!ref.mounted ||
+        state.tab != FilesTab.mine ||
+        state.currentFolder?.id != parentId) {
+      return;
+    }
+    await _load(silent: true).catchError((_) {});
+  }
+
   /// Bulk delete of the selection — mirrors `confirmBulkDelete()`: on any
   /// failure the folder is reloaded so the list shows what really remains.
   Future<void> deleteSelected() async {

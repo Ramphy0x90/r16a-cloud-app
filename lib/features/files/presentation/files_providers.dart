@@ -4,11 +4,15 @@ import '../../../core/network/dio_client.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
 import '../../../core/session/user_summary.dart';
+import '../data/file_uploader.dart';
 import '../data/files_api.dart';
 import '../data/files_cache.dart';
+import '../data/upload_source.dart';
 import '../data/thumbnail_cache.dart';
 import 'files_controller.dart';
 import 'files_state.dart';
+import 'upload_controller.dart';
+import 'upload_picker.dart';
 
 final filesApiProvider = Provider((ref) => FilesApi(ref.watch(dioProvider)));
 
@@ -45,3 +49,17 @@ final shareCandidatesProvider = FutureProvider.autoDispose
       final users = await ref.watch(sessionApiProvider).listUsers();
       return users.where((u) => u.id != me.id && u.id != ownerId).toList();
     });
+
+final fileUploaderProvider = Provider(
+  (ref) => FileUploader(ref.watch(filesApiProvider)),
+);
+
+/// Not auto-disposed: a running upload outlives any one widget.
+final uploadControllerProvider =
+    NotifierProvider<UploadController, UploadState>(UploadController.new);
+
+/// System pickers behind a provider so tests can stand in for them.
+final uploadPickerProvider =
+    Provider<Future<List<UploadSource>> Function(UploadPick)>(
+      (ref) => pickUploadSources,
+    );

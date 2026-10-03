@@ -4,18 +4,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/text_input_dialog.dart';
+import '../data/upload_source.dart';
 import '../domain/file_item.dart';
 import 'file_viewer_screen.dart';
 import 'files_controller.dart';
 import 'files_providers.dart';
 import 'widgets/file_context_sheet.dart';
 import 'widgets/share_sheet.dart';
+import 'widgets/upload_source_sheet.dart';
 
 /// User-facing flows behind the Files screen's buttons: prompt (dialog /
-/// sheet), call [FilesController], report failures. Mirrors the web
-/// `FilesPage` modal handlers (`openCreateFolderModal`, `renameFile`,
-/// `confirmDelete`, `confirmBulkDelete`, `saveShareSettings`); the web
-/// only logs errors, here they surface as snackbars.
+/// sheet / picker), call the controllers, report failures. Mirrors the web
+/// `FilesPage` handlers (`openCreateFolderModal`, `renameFile`,
+/// `confirmDelete`, `confirmBulkDelete`, `saveShareSettings`,
+/// `triggerUpload`); the web only logs errors, here they surface as
+/// snackbars (upload failures go to the upload errors banner, as on web).
 class FileActions {
   FileActions(this._context, this._ref);
 
@@ -37,6 +40,27 @@ class FileActions {
       () => _controller.createFolder(name),
       'Could not create folder.',
     );
+  }
+
+  /// Uploads into the folder open when the picker was launched.
+  Future<void> upload() async {
+    final pick = await showUploadSourceSheet(_context);
+    if (pick == null) return;
+    final parentId = _ref.read(filesControllerProvider).currentFolder?.id;
+
+    final List<UploadSource> sources;
+    try {
+      sources = await _ref.read(uploadPickerProvider)(pick);
+    } catch (e, stack) {
+      // The snackbar stays generic; the log says why (e.g. a missing
+      // native plugin after hot reload, or a denied permission).
+      debugPrint('Upload picker failed: $e\n$stack');
+      _snack('Could not open the picker.');
+      return;
+    }
+    await _ref
+        .read(uploadControllerProvider.notifier)
+        .upload(sources, parentId: parentId);
   }
 
   Future<void> rename(FileItem file) async {
@@ -153,12 +177,18 @@ class FileActions {
       await action();
     } catch (e) {
       if (!_context.mounted) return;
-      final message = e is ApiException && e.statusCode == 409
-          ? 'A file or folder with that name already exists.'
-          : fallback;
-      ScaffoldMessenger.of(
-        _context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+      _snack(
+        e is ApiException && e.statusCode == 409
+            ? 'A file or folder with that name already exists.'
+            : fallback,
+      );
     }
+  }
+
+  void _snack(String message) {
+    if (!_context.mounted) return;
+    ScaffoldMessenger.of(
+      _context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

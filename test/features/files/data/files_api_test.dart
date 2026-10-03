@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:r16a_cloud_app/core/network/api_exception.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
+import 'package:r16a_cloud_app/features/files/data/upload_source.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 
 /// Records the outgoing request and replies with a fixed status and body,
@@ -18,6 +19,9 @@ class _StubAdapter implements HttpClientAdapter {
   final int statusCode;
   RequestOptions? lastRequest;
 
+  /// Raw request body bytes (streamed bodies such as uploads).
+  List<int> lastBody = const [];
+
   @override
   Future<ResponseBody> fetch(
     RequestOptions options,
@@ -25,6 +29,9 @@ class _StubAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     lastRequest = options;
+    lastBody = requestStream == null
+        ? const []
+        : await requestStream.expand((chunk) => chunk).toList();
     if (bytes != null) {
       return ResponseBody.fromBytes(
         bytes!,
@@ -267,5 +274,90 @@ void main() {
     });
     expect(page.events.single.parentId, isNull);
     expect(page.nextCursor, 1759000000001);
+  });
+
+  group('uploads', () {
+    final content = utf8.encode('hello world');
+    final source = UploadSource(
+      name: 'notes.txt',
+      size: content.length,
+      openRead: (start, end) => Stream.value(content.sublist(start, end)),
+    );
+
+    test('multipart sends ownerId, parentId and the file', () async {
+      final (api, adapter) = _apiWith(_StubAdapter(json: _fileJson()));
+      final progress = <int>[];
+
+      await api.uploadMultipart(
+        ownerId: 'owner-1',
+        parentId: 'p1',
+        source: source,
+        onProgress: progress.add,
+      );
+
+      expect(adapter.lastRequest?.method, 'POST');
+      expect(adapter.lastRequest?.path, '/fs/upload');
+      final body = utf8.decode(adapter.lastBody);
+      expect(body, contains('name="ownerId"\r\n\r\nowner-1'));
+      expect(body, contains('name="parentId"\r\n\r\np1'));
+      expect(body, contains('filename="notes.txt"'));
+      expect(body, contains('hello world'));
+      expect(progress.last, content.length);
+    });
+
+    test('multipart omits parentId at root', () async {
+      final (api, adapter) = _apiWith(_StubAdapter(json: _fileJson()));
+
+      await api.uploadMultipart(ownerId: 'owner-1', source: source);
+
+      expect(utf8.decode(adapter.lastBody), isNot(contains('parentId')));
+    });
+
+    test('init sends the web body and reads the session', () async {
+      final (api, adapter) = _apiWith(
+        _StubAdapter(json: {'uploadId': 'up-1', 'partSizeBytes': 8388608}),
+      );
+
+      final session = await api.initChunkedUpload(
+        ownerId: 'owner-1',
+        fileName: 'big.mov',
+        totalSize: 200,
+      );
+
+      expect(adapter.lastRequest?.path, '/fs/upload/init');
+      expect(adapter.lastRequest?.data, {
+        'ownerId': 'owner-1',
+        'parentId': null,
+        'fileName': 'big.mov',
+        'totalSize': 200,
+        'partSizeBytes': null,
+        'description': null,
+        'visibility': null,
+        'sharedWithIds': null,
+      });
+      expect(session.uploadId, 'up-1');
+      expect(session.partSizeBytes, 8388608);
+    });
+
+    test('part is a raw octet-stream body with its exact length', () async {
+      final (api, adapter) = _apiWith(_StubAdapter(statusCode: 204));
+
+      await api.uploadPart('up-1', source.openRead(6, 11), 5);
+
+      expect(adapter.lastRequest?.method, 'PUT');
+      expect(adapter.lastRequest?.path, '/fs/upload/up-1/part');
+      expect(adapter.lastRequest?.contentType, 'application/octet-stream');
+      expect(adapter.lastRequest?.headers[Headers.contentLengthHeader], 5);
+      expect(utf8.decode(adapter.lastBody), 'world');
+    });
+
+    test('complete posts to the session', () async {
+      final (api, adapter) = _apiWith(_StubAdapter(json: _fileJson()));
+
+      await api.completeChunkedUpload('up-1');
+
+      expect(adapter.lastRequest?.method, 'POST');
+      expect(adapter.lastRequest?.path, '/fs/upload/up-1/complete');
+    });
   });
 }
