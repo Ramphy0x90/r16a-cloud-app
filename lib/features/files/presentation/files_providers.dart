@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/auth/auth_controller.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
 import '../../../core/session/user_summary.dart';
+import '../data/file_downloads.dart';
 import '../data/file_uploader.dart';
 import '../data/files_api.dart';
 import '../data/files_cache.dart';
@@ -63,3 +65,12 @@ final uploadPickerProvider =
     Provider<Future<List<UploadSource>> Function(UploadPick)>(
       (ref) => pickUploadSources,
     );
+
+/// Platform downloads; the bearer token for the zip endpoint comes from
+/// the auth controller, like every other authenticated call.
+final fileDownloadsProvider = Provider(
+  (ref) => FileDownloads(
+    ref.watch(filesApiProvider),
+    ref.read(authControllerProvider.notifier).getValidAccessToken,
+  ),
+);

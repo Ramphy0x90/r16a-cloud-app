@@ -16,7 +16,8 @@ enum ThumbnailSize { small, medium, large }
 typedef ChunkUploadSession = ({String uploadId, int partSizeBytes});
 
 /// Mirrors the web client's `FileService` (`services/file.service.ts`) —
-/// the `/api/fs` endpoints. Disk downloads land with their own step.
+/// the `/api/fs` endpoints. Disk downloads run through `FileDownloads`,
+/// which uses the URLs built here.
 class FilesApi {
   FilesApi(this._dio);
 
@@ -286,6 +287,16 @@ class FilesApi {
       throw ApiException.fromDioException(e);
     }
   }
+
+  // ── Download URLs (fetched by the platform downloader, not Dio) ─────────
+
+  /// `GET /fs/download/token?token=` — needs no bearer header.
+  Uri tokenDownloadUri(String token) => Uri.parse(
+    '${_dio.options.baseUrl}/fs/download/token',
+  ).replace(queryParameters: {'token': token});
+
+  /// `POST /fs/download` with `{ ids }` — bearer-authenticated zip stream.
+  Uri get zipDownloadUri => Uri.parse('${_dio.options.baseUrl}/fs/download');
 
   /// Short-lived token for the unauthenticated `GET /fs/download/token`.
   Future<String> getDownloadToken(String id) async {

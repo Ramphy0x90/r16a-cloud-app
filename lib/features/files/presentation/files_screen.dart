@@ -58,10 +58,9 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
       controller.toggleSelected(file);
     } else if (file.isDirectory) {
       controller.openFolder(file);
-    } else if (file.isImage) {
-      _actions.openImage(file);
+    } else {
+      _actions.open(file);
     }
-    // Videos and other files open once downloads land (transfer step).
   }
 
   void _onFileLongPress(FileItem file) {
@@ -183,8 +182,8 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
   }
 
   /// Web `files-toolbar` in selection mode: cancel, count, and the actions
-  /// valid for the selection (share / rename need exactly one item).
-  /// Download joins with the transfer step.
+  /// valid for the selection (share / rename need exactly one item; only
+  /// download on the read-only Shared tab).
   PreferredSizeWidget _buildSelectionAppBar(FilesState state) {
     final controller = ref.read(filesControllerProvider.notifier);
     final selected = state.selectedFiles;
@@ -198,6 +197,12 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
       ),
       title: Text('${selected.length} selected'),
       actions: [
+        if (selected.isNotEmpty)
+          IconButton(
+            onPressed: () => _actions.download(selected),
+            icon: const Icon(Icons.download_rounded),
+            tooltip: 'Download',
+          ),
         if (!state.readOnly && single != null) ...[
           IconButton(
             onPressed: () => _actions.share(single),

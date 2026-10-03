@@ -14,14 +14,19 @@ import '../fakes.dart';
 
 void main() {
   late FakeFilesApi api;
+  late FakeFileDownloads downloads;
 
-  setUp(() => api = FakeFilesApi());
+  setUp(() {
+    api = FakeFilesApi();
+    downloads = FakeFileDownloads();
+  });
 
   Future<void> pumpScreen(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           filesApiProvider.overrideWithValue(api),
+          fileDownloadsProvider.overrideWithValue(downloads),
           sessionApiProvider.overrideWithValue(FakeSessionApi()),
         ],
         child: const MaterialApp(home: FilesScreen()),
@@ -126,7 +131,7 @@ void main() {
     expect(api.thumbnailCalls.map((c) => c.$1), ['photo']);
   });
 
-  testWidgets('tapping an image opens the viewer on it; other files do not', (
+  testWidgets('tapping an image opens the viewer; other files open outside', (
     tester,
   ) async {
     await pumpScreen(tester);
@@ -137,8 +142,12 @@ void main() {
     ]);
 
     await tester.tap(find.text('doc.pdf'));
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.byType(FileViewerScreen), findsNothing);
+    expect(downloads.fetched, ['doc']);
+    expect(downloads.opened, ['/tmp/doc.pdf']);
+    // The "Opening…" dialog is gone once the file is handed off.
+    expect(find.textContaining('Opening'), findsNothing);
 
     await tester.tap(find.text('b.jpg'));
     // The preview never resolves in tests, so the spinner keeps animating.

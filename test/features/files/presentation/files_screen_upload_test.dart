@@ -38,11 +38,13 @@ UploadSource _source(String name) => UploadSource(
 
 void main() {
   late FakeFilesApi api;
+  late FakeFileDownloads downloads;
   late _ManualUploader uploader;
   late List<UploadPick> picks;
 
   setUp(() {
     api = FakeFilesApi();
+    downloads = FakeFileDownloads();
     uploader = _ManualUploader();
     picks = [];
   });
@@ -52,6 +54,7 @@ void main() {
       ProviderScope(
         overrides: [
           filesApiProvider.overrideWithValue(api),
+          fileDownloadsProvider.overrideWithValue(downloads),
           sessionApiProvider.overrideWithValue(FakeSessionApi()),
           fileUploaderProvider.overrideWithValue(uploader),
           uploadPickerProvider.overrideWithValue((pick) async {

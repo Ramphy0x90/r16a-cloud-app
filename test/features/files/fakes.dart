@@ -8,6 +8,7 @@ import 'package:r16a_cloud_app/core/session/current_user.dart';
 import 'package:r16a_cloud_app/core/session/session_api.dart';
 import 'package:r16a_cloud_app/core/session/user_preferences.dart';
 import 'package:r16a_cloud_app/core/session/user_summary.dart';
+import 'package:r16a_cloud_app/features/files/data/file_downloads.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_page.dart';
@@ -101,6 +102,9 @@ class FakeFilesApi extends FilesApi {
     downloadCalls.add(id);
     return Completer<Uint8List>().future;
   }
+
+  @override
+  Future<String> getDownloadToken(String id) async => 'tkn-$id';
 
   // ── Mutations: answered immediately and recorded ──
 
@@ -199,4 +203,42 @@ class FakeSessionApi extends SessionApi {
           email: 'a@example.com',
         ),
       ];
+}
+
+/// Records opens and saves instead of touching the platform downloader.
+class FakeFileDownloads extends FileDownloads {
+  FakeFileDownloads() : super(FakeFilesApi(), () async => 'bearer');
+
+  final fetched = <String>[];
+  final opened = <String>[];
+  final saved = <List<String>>[];
+
+  /// Result of [open]: whether an app could open the file.
+  bool canOpen = true;
+
+  @override
+  Future<String> fetchForOpening(
+    FileItem file, {
+    void Function(double progress)? onProgress,
+    void Function(String taskId)? onStarted,
+  }) async {
+    fetched.add(file.id);
+    return '/tmp/${file.name}';
+  }
+
+  @override
+  Future<bool> open(String path) async {
+    opened.add(path);
+    return canOpen;
+  }
+
+  @override
+  Future<SavedDownload> save(
+    List<FileItem> files, {
+    void Function(double progress)? onProgress,
+    void Function(String taskId)? onStarted,
+  }) async {
+    saved.add([for (final f in files) f.id]);
+    return const SavedDownload(path: '/Download/x', inDownloads: true);
+  }
 }

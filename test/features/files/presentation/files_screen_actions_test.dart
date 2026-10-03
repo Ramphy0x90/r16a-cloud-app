@@ -11,8 +11,12 @@ import '../fakes.dart';
 
 void main() {
   late FakeFilesApi api;
+  late FakeFileDownloads downloads;
 
-  setUp(() => api = FakeFilesApi());
+  setUp(() {
+    api = FakeFilesApi();
+    downloads = FakeFileDownloads();
+  });
 
   /// Pumps the screen and answers the root listing with [items].
   Future<void> pumpWith(WidgetTester tester, List<Object> items) async {
@@ -20,6 +24,7 @@ void main() {
       ProviderScope(
         overrides: [
           filesApiProvider.overrideWithValue(api),
+          fileDownloadsProvider.overrideWithValue(downloads),
           sessionApiProvider.overrideWithValue(FakeSessionApi()),
         ],
         child: const MaterialApp(home: FilesScreen()),
@@ -179,7 +184,7 @@ void main() {
     expect(find.text('Share file'), findsNothing);
   });
 
-  testWidgets('Shared tab is read-only', (tester) async {
+  testWidgets('Shared tab is read-only but can download', (tester) async {
     await pumpWith(tester, []);
 
     await tester.tap(find.text('Shared'));
@@ -191,9 +196,59 @@ void main() {
     await tester.longPress(find.text('theirs.txt'));
     await tester.pumpAndSettle();
     expect(find.text('Delete'), findsNothing);
-
-    await tester.tap(find.byTooltip('Options'));
+    expect(find.text('Rename'), findsNothing);
+    await tester.tap(find.text('Select'));
     await tester.pumpAndSettle();
-    expect(find.text('Select'), findsNothing);
+
+    expect(find.text('1 selected'), findsOneWidget);
+    expect(find.byTooltip('Delete'), findsNothing);
+    await tester.tap(find.byTooltip('Download'));
+    await tester.pumpAndSettle();
+    expect(downloads.saved, [
+      ['theirs'],
+    ]);
+  });
+
+  testWidgets('selection Download saves all selected and leaves selection', (
+    tester,
+  ) async {
+    await pumpWith(tester, [fakeFile('a'), fakeFile('b')]);
+    await tester.longPress(find.text('a.txt'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('b.txt'));
+    await tester.pump();
+
+    await tester.tap(find.byTooltip('Download'));
+    await tester.pumpAndSettle();
+
+    expect(downloads.saved.single, unorderedEquals(['a', 'b']));
+    expect(find.text('2 selected'), findsNothing);
+    expect(find.text('Saved to Downloads'), findsOneWidget);
+  });
+
+  testWidgets('long-press → Download on a folder', (tester) async {
+    await pumpWith(tester, [fakeFile('docs', isDirectory: true)]);
+
+    await tester.longPress(find.text('docs'));
+    await tester.pumpAndSettle();
+    expect(find.text('Open'), findsNothing);
+    await tester.tap(find.text('Download'));
+    await tester.pumpAndSettle();
+
+    expect(downloads.saved, [
+      ['docs'],
+    ]);
+  });
+
+  testWidgets('a file no app can open says so', (tester) async {
+    await pumpWith(tester, [fakeFile('x', extension: 'xyz')]);
+    downloads.canOpen = false;
+
+    await tester.tap(find.text('x.xyz'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('No app found to open this file.'), findsOneWidget);
   });
 }

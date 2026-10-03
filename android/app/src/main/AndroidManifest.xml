@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- background_downloader: download progress notifications (API 33+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <!-- background_downloader: moving files to Downloads before scoped storage (API 24-28). -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28"/>
     <application
         android:label="r16a_cloud_app"
         android:name="${applicationName}"

@@ -33,9 +33,6 @@ class _FileOptionsContent extends ConsumerWidget {
       filesControllerProvider.select((s) => s.sortDirection),
     );
     final controller = ref.read(filesControllerProvider.notifier);
-    final readOnly = ref.watch(
-      filesControllerProvider.select((s) => s.readOnly),
-    );
     final selectionMode = ref.watch(
       filesControllerProvider.select((s) => s.selectionMode),
     );
@@ -78,22 +75,19 @@ class _FileOptionsContent extends ConsumerWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Shared tab: selection only enables download, which isn't in yet.
-        if (!readOnly) ...[
-          ListTile(
-            leading: Icon(
-              selectionMode
-                  ? Icons.cancel_outlined
-                  : Icons.check_circle_outline_rounded,
-            ),
-            title: Text(selectionMode ? 'Cancel selection' : 'Select'),
-            onTap: () {
-              controller.setSelectionMode(!selectionMode);
-              Navigator.of(context).pop();
-            },
+        ListTile(
+          leading: Icon(
+            selectionMode
+                ? Icons.cancel_outlined
+                : Icons.check_circle_outline_rounded,
           ),
-          const Divider(),
-        ],
+          title: Text(selectionMode ? 'Cancel selection' : 'Select'),
+          onTap: () {
+            controller.setSelectionMode(!selectionMode);
+            Navigator.of(context).pop();
+          },
+        ),
+        const Divider(),
         sectionLabel('View'),
         viewTile(DefaultFileView.grid, Icons.grid_view_rounded),
         viewTile(DefaultFileView.list, Icons.view_list_rounded),

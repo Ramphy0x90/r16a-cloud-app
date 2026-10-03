@@ -4,27 +4,22 @@ import '../../domain/file_item.dart';
 import 'file_type_icon.dart';
 
 /// Actions offered on a long-pressed file.
-enum FileAction { open, select, rename, share, delete }
+enum FileAction { open, download, select, rename, share, delete }
 
 /// Per-file actions — the native stand-in for the web's hover rename /
 /// delete buttons and the single-selection toolbar. Write actions are
-/// hidden when [readOnly] (Shared tab). Resolves to `null` when dismissed,
-/// and returns immediately when nothing applies.
+/// hidden when [readOnly] (Shared tab). Resolves to `null` when dismissed.
 Future<FileAction?> showFileContextSheet({
   required BuildContext context,
   required FileItem file,
   required bool readOnly,
 }) async {
   final actions = [
-    if (file.isImage) FileAction.open,
-    if (!readOnly) ...[
-      FileAction.select,
-      FileAction.rename,
-      FileAction.share,
-      FileAction.delete,
-    ],
+    if (!file.isDirectory) FileAction.open,
+    FileAction.download,
+    FileAction.select,
+    if (!readOnly) ...[FileAction.rename, FileAction.share, FileAction.delete],
   ];
-  if (actions.isEmpty) return null;
 
   return showModalBottomSheet<FileAction>(
     context: context,
@@ -35,7 +30,8 @@ Future<FileAction?> showFileContextSheet({
 
       Widget tile(FileAction action) {
         final (icon, label) = switch (action) {
-          FileAction.open => (Icons.open_in_full_rounded, 'Open'),
+          FileAction.open => (Icons.open_in_new_rounded, 'Open'),
+          FileAction.download => (Icons.download_rounded, 'Download'),
           FileAction.select => (Icons.check_circle_outline_rounded, 'Select'),
           FileAction.rename => (Icons.edit_outlined, 'Rename'),
           FileAction.share => (Icons.share_outlined, 'Share'),

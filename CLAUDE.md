@@ -63,7 +63,10 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   on every mutation. Upload: `FileUploader` (multipart ≤ 100 MB, else chunked init/parts/complete,
   streamed via `UploadSource.openRead`), `UploadController` (2 concurrent, inline progress + errors
   banners), pickers in `upload_picker.dart` (file_picker / image_picker, behind `uploadPickerProvider`).
-  Pending: download + open videos/other files, delta sync, Hive + ETag.
+  Download: `FileDownloads` (background_downloader): token link for one file, zip `POST /fs/download`
+  otherwise; tap non-image → temp copy + system "open with"; save → Android Downloads (+ notification),
+  iOS share sheet. Download in long-press menu and selection (also on Shared tab).
+  Pending: delta sync, Hive + ETag.
 - Photos: placeholder screen.
 
 Update this section when a phase step lands.
