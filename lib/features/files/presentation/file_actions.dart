@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:share_plus/share_plus.dart';
 
-import '../../../core/media/file_downloads.dart';
-import '../../../core/media/file_opener.dart';
-import '../../../core/media/media_providers.dart';
+import '../../../core/media/media_actions.dart';
 import '../../../core/model/file_item.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/confirm_dialog.dart';
@@ -146,45 +143,11 @@ class FileActions {
     gallery: _ref.read(filesControllerProvider).items,
   );
 
-  /// Web `downloadSelected()`: one file as-is, several (or a folder) as a
-  /// zip. Android saves to Downloads with a progress notification; iOS
-  /// offers the share sheet ("Save to Files"…).
-  Future<void> download(List<FileItem> files) async {
-    if (files.isEmpty) return;
-    final downloads = _ref.read(fileDownloadsProvider);
-    final origin = _shareOrigin();
-    _snack(
-      files.length == 1
-          ? 'Downloading ${files.single.name}…'
-          : 'Downloading ${files.length} items…',
-    );
+  /// Saves to the device (see [saveMediaFiles]) and leaves selection
+  /// mode, like the web's `downloadSelected()`.
+  Future<void> download(List<FileItem> files) {
     _controller.cancelSelection();
-
-    try {
-      final saved = await downloads.save(files);
-      if (saved.inDownloads) {
-        _snack('Saved to Downloads');
-      } else {
-        await SharePlus.instance.share(
-          ShareParams(files: [XFile(saved.path)], sharePositionOrigin: origin),
-        );
-      }
-    } on DownloadCancelled {
-      // Cancelled from the notification.
-    } catch (e) {
-      debugPrint('Download failed: $e');
-      _snack(
-        e is DownloadFailure && e.message == 'Storage permission denied.'
-            ? 'Allow storage access to save downloads.'
-            : 'Could not download.',
-      );
-    }
-  }
-
-  /// Where the iPad share popover anchors: the whole screen.
-  Rect? _shareOrigin() {
-    final box = _context.findRenderObject();
-    return box is RenderBox ? box.localToGlobal(Offset.zero) & box.size : null;
+    return saveMediaFiles(_context, _ref, files);
   }
 
   Future<void> showMenu(FileItem file) async {

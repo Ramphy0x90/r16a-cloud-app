@@ -5,12 +5,14 @@ import 'package:photo_view/photo_view.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../model/file_item.dart';
+import 'media_actions.dart';
 import 'media_images.dart';
 import 'media_providers.dart';
 
 /// Full-screen image viewer — the native take on the web's
 /// `image-preview-modal`: thumbnail / blurhash placeholder while the full
-/// image loads, plus pinch-zoom and swiping between the folder's images.
+/// image loads, pinch-zoom, swiping between the given images, and download
+/// / share-via actions for the one on screen.
 class FileViewerScreen extends ConsumerStatefulWidget {
   const FileViewerScreen({
     super.key,
@@ -57,6 +59,19 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
           icon: const Icon(Icons.close_rounded),
           tooltip: 'Close image',
         ),
+        actions: [
+          IconButton(
+            onPressed: () => shareMediaFile(context, ref, widget.files[_index]),
+            icon: const Icon(Icons.ios_share_rounded),
+            tooltip: 'Share via…',
+          ),
+          IconButton(
+            onPressed: () =>
+                saveMediaFiles(context, ref, [widget.files[_index]]),
+            icon: const Icon(Icons.download_rounded),
+            tooltip: 'Download',
+          ),
+        ],
       ),
       body: PhotoViewGestureDetectorScope(
         axis: Axis.horizontal,

@@ -76,8 +76,8 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   cleared on sign-out from `app.dart`.
 - Photos: done (plan Phase 8 step 18): `PhotosApi` (`/photos/years`, `/photos`, shared media via
   `/fs/shared-with-me`), `PhotosController` (year sections, lazy pages), grid with placeholder tiles that
-  request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Pending: viewer
-  download/share actions (step 19), auto-refresh after uploads.
+  request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Viewer has
+  Download + "Share via…" (step 19). Pending: auto-refresh after uploads.
 
 Update this section when a phase step lands.
 
@@ -90,7 +90,8 @@ lib/
               session/ (CurrentUser, currentUserProvider, users list), util/, widgets/,
               model/ (FileItem — shared DTO),
               media/ (MediaApi: thumbnails/bytes/download links, ThumbnailCache, image
-                      providers, FileViewerScreen, FileDownloads, openMediaFile, FileThumbnail)
+                      providers, FileViewerScreen, FileDownloads, FileThumbnail,
+                      media_actions.dart: openMediaFile / saveMediaFiles / shareMediaFile)
   features/<name>/{data,domain,presentation}
 ```
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/media/file_opener.dart';
+import '../../../core/media/media_actions.dart';
 import '../../../core/model/file_item.dart';
 import 'photos_providers.dart';
 import 'photos_state.dart';
