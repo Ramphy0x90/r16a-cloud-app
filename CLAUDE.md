@@ -8,7 +8,7 @@ Goal: feature parity with the Angular web client, using native mobile idioms.
 | Repo                | Path                   | Role                                                                                           |
 | ------------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
 | `r16a-cloud`        | `../r16a-cloud`        | Spring Boot 4 / Java 21 backend. **The API contract. Never change it from here.**              |
-| `r16a-cloud-client` | `../r16a-cloud-client` | Angular 21 PWA. **Source of truth for behavior** (caching, TTLs, debounce, copy text, colors). |
+| `r16a-cloud_client` | `../r16a-cloud_client` | Angular 21 PWA. **Source of truth for behavior** (caching, TTLs, debounce, copy text, colors). |
 
 Before implementing a feature, read the matching web code (`src/app/pages/<feature>`, `src/app/services`,
 `src/app/types`) and the backend controller/DTO (`src/main/java/com/r16a/r16a_cloud/{file,photo,user}`).
@@ -52,8 +52,12 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 ## Status
 
 - Done: theme, dock shell, auth (login/refresh/logout), session (`/user/me`), profile + preferences autosave.
-- Dashboard: UI done, **still renders `_placeholderData`**. Needs `dashboard_api` + provider (plan Phase 2).
-- Files, Photos: placeholder screens.
+- Dashboard: done, backed by `dashboard_api` + `dashboardProvider`.
+- Files: browse done (plan Phase 4 steps 9–10): `files_api`, 60s memory `files_cache`, `FilesController`
+  (tabs, folder stack, sort, cursor paging), grid/list UI, options sheet. Shared tab is a flat list
+  (folders there don't open). Pending: thumbnails/preview (tap opens files — differs from web),
+  mutations, upload/download, delta sync, Hive + ETag.
+- Photos: placeholder screen.
 
 Update this section when a phase step lands.
 
