@@ -22,7 +22,10 @@ class _HomeShellState extends State<HomeShell> {
       body: IndexedStack(
         index: _index,
         children: [
-          for (final d in dockDestinations) d.screen,
+          // Only the visible tab ticks — screens also read this to pause
+          // background work (e.g. the Files delta sync).
+          for (final (i, d) in dockDestinations.indexed)
+            TickerMode(enabled: i == _index, child: d.screen),
         ],
       ),
       bottomNavigationBar: Dock(

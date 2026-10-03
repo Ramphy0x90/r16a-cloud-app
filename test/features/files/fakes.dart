@@ -10,6 +10,7 @@ import 'package:r16a_cloud_app/core/session/user_preferences.dart';
 import 'package:r16a_cloud_app/core/session/user_summary.dart';
 import 'package:r16a_cloud_app/features/files/data/file_downloads.dart';
 import 'package:r16a_cloud_app/features/files/data/files_api.dart';
+import 'package:r16a_cloud_app/features/files/domain/file_event.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_item.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_page.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
@@ -105,6 +106,27 @@ class FakeFilesApi extends FilesApi {
 
   @override
   Future<String> getDownloadToken(String id) async => 'tkn-$id';
+
+  /// Delta-sync pages served in order; empty once drained.
+  final eventPages = <FileEventsPage>[];
+  final eventCalls = <int>[];
+
+  @override
+  Future<FileEventsPage> getFileEvents({
+    required String ownerId,
+    required int since,
+    int limit = 100,
+  }) async {
+    eventCalls.add(since);
+    if (eventPages.isEmpty) {
+      return FileEventsPage(
+        events: const [],
+        nextCursor: since,
+        hasMore: false,
+      );
+    }
+    return eventPages.removeAt(0);
+  }
 
   // ── Mutations: answered immediately and recorded ──
 

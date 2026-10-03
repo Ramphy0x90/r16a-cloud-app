@@ -66,7 +66,10 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   Download: `FileDownloads` (background_downloader): token link for one file, zip `POST /fs/download`
   otherwise; tap non-image → temp copy + system "open with"; save → Android Downloads (+ notification),
   iOS share sheet. Download in long-press menu and selection (also on Shared tab).
-  Pending: delta sync, Hive + ETag.
+  Delta sync: `FileDeltaSync` polls `/fs/events` every 10s while the Files tab is visible (shell wraps
+  tabs in `TickerMode`) and the app is foreground; catches up on resume; changed folders go through
+  `FilesController.folderChanged`.
+  Pending: Hive persistent listing cache + ETag interceptor.
 - Photos: placeholder screen.
 
 Update this section when a phase step lands.

@@ -11,6 +11,7 @@ import '../data/files_api.dart';
 import '../data/files_cache.dart';
 import '../data/upload_source.dart';
 import '../data/thumbnail_cache.dart';
+import 'file_delta_sync.dart';
 import 'files_controller.dart';
 import 'files_state.dart';
 import 'upload_controller.dart';
@@ -74,3 +75,10 @@ final fileDownloadsProvider = Provider(
     ref.read(authControllerProvider.notifier).getValidAccessToken,
   ),
 );
+
+/// Lives with the Files screen (which keeps it watched) and stops with it.
+final fileDeltaSyncProvider = Provider.autoDispose((ref) {
+  final sync = FileDeltaSync(ref);
+  ref.onDispose(sync.stop);
+  return sync;
+});

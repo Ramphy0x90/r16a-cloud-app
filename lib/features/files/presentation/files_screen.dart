@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/session/user_preferences.dart';
 import '../domain/file_item.dart';
 import 'file_actions.dart';
+import 'file_delta_sync.dart';
 import 'files_providers.dart';
 import 'files_state.dart';
 import 'widgets/file_grid.dart';
@@ -30,16 +31,51 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
 
   final _scrollController = ScrollController();
 
+  // Delta sync runs only while this tab is shown and the app is foreground.
+  late final AppLifecycleListener _lifecycle;
+  late final ProviderSubscription<FileDeltaSync> _syncSubscription;
+  var _appActive = true;
+  var _tabVisible = true;
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_maybeLoadMore);
+    final appState = WidgetsBinding.instance.lifecycleState;
+    _appActive = appState == null || appState == AppLifecycleState.resumed;
+    _lifecycle = AppLifecycleListener(
+      onStateChange: (state) {
+        _appActive = state == AppLifecycleState.resumed;
+        _updateSync();
+      },
+    );
+    // Keeps the auto-disposed sync alive for the screen's lifetime.
+    _syncSubscription = ref.listenManual(fileDeltaSyncProvider, (_, _) {});
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The shell disables tickers on hidden tabs.
+    _tabVisible = TickerMode.valuesOf(context).enabled;
+    _updateSync();
   }
 
   @override
   void dispose() {
+    _lifecycle.dispose();
+    _syncSubscription.close();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _updateSync() {
+    final sync = _syncSubscription.read();
+    if (_appActive && _tabVisible) {
+      sync.start();
+    } else {
+      sync.stop();
+    }
   }
 
   void _maybeLoadMore() {
