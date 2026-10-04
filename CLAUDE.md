@@ -40,6 +40,7 @@ flutter build appbundle --release --dart-define-from-file=config/prod.json
 flutter test tool/branding/render_branding_test.dart   # SVG -> assets/branding/*.png
 dart run flutter_launcher_icons                          # config: flutter_launcher_icons.yaml
 dart run flutter_native_splash:create                    # config: flutter_native_splash.yaml
+cp assets/branding/web/*.png ../r16a-cloud_client/public/icons/   # web PWA icons
 # flutter_launcher_icons rewrites ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS
 # in ios/Runner.xcodeproj/project.pbxproj to "AppIcon" — revert that hunk (must stay YES).
 ```

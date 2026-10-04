@@ -4,8 +4,9 @@
 //   flutter test tool/branding/render_branding_test.dart
 //   dart run flutter_launcher_icons
 //   dart run flutter_native_splash:create
+//   cp assets/branding/web/*.png ../r16a-cloud_client/public/icons/
 //
-// Re-run all three whenever the logo changes.
+// Re-run all of these whenever the logo changes.
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -42,7 +43,7 @@ class _Spec {
 // The mark covers ~77% of its SVG box. Sizes keep it inside each
 // platform's safe area: ~48% of the full icon, inside the adaptive icon's
 // 66% safe zone, and inside Android 12's 2/3 splash circle.
-const _specs = [
+final _specs = [
   _Spec('icon.png', _dark, canvas: 1024, logo: 640, background: _darkBackground),
   _Spec('icon_foreground.png', _dark, canvas: 1024, logo: 560),
   _Spec('icon_monochrome.png', _dark, canvas: 1024, logo: 560, tint: Colors.white),
@@ -50,6 +51,27 @@ const _specs = [
   _Spec('splash_dark.png', _dark, canvas: 768, logo: 768),
   _Spec('splash_android12_light.png', _light, canvas: 1152, logo: 768),
   _Spec('splash_android12_dark.png', _dark, canvas: 1152, logo: 768),
+  // Web client PWA icons (copy to r16a-cloud_client/public/icons/). Same
+  // composition as icon.png, which also keeps the mark inside the 80%
+  // "maskable" safe zone.
+  // Browser-tab favicons (PNG fallback for the SVG ones): transparent, and
+  // the mark drawn larger since tab icons are tiny. Emerald reads on both
+  // light and dark tab bars.
+  for (final size in [32, 96])
+    _Spec(
+      'web/favicon-${size}x$size.png',
+      _dark,
+      canvas: size.toDouble(),
+      logo: size * 1.2,
+    ),
+  for (final size in [72, 96, 128, 144, 152, 192, 384, 512])
+    _Spec(
+      'web/icon-${size}x$size.png',
+      _dark,
+      canvas: size.toDouble(),
+      logo: size * 0.625,
+      background: _darkBackground,
+    ),
 ];
 
 void main() {
