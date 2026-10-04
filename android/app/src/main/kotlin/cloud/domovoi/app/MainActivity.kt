@@ -1,4 +1,4 @@
-package cloud.r16a.r16a_cloud_app
+package cloud.domovoi.app
 
 import io.flutter.embedding.android.FlutterActivity
 

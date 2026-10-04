@@ -31,6 +31,11 @@ flutter run --dart-define-from-file=config/prod.json
 flutter build apk --release --dart-define-from-file=config/prod.json
 # Release builds without these defines throw at startup (Env.checkReleaseConfig).
 
+# Release build (Android): needs android/key.properties + upload keystore (see
+# android/key.properties.example; both git-ignored). Without it the build falls back to the
+# debug key and logs a warning — Google Play rejects that.
+flutter build appbundle --release --dart-define-from-file=config/prod.json
+
 # Launcher icon + native splash (after changing assets/imgs/domovoy-logo-*.svg)
 flutter test tool/branding/render_branding_test.dart   # SVG -> assets/branding/*.png
 dart run flutter_launcher_icons                          # config: flutter_launcher_icons.yaml
@@ -153,6 +158,8 @@ lib/
 - `DELETE /fs/{id}`: treat 404 as success.
 - Uploads ≥ 100 MB use chunked `upload/init` → `PUT part` (octet-stream) → `complete`; below that, multipart `POST /upload`.
 - `GET /fs/download/token` is the only unauthenticated endpoint.
+- App id is **`cloud.domovoi.app`** on both platforms (Android `applicationId`/`namespace`, iOS
+  `PRODUCT_BUNDLE_IDENTIFIER`). Permanent once published — never change it.
 - OAuth redirect scheme `cloud.r16a.r16acloudapp` is defined in **three** places: `env.dart`,
   `android/app/build.gradle.kts` (`appAuthRedirectScheme`), `ios/Runner/Info.plist`. Change all or none.
 
