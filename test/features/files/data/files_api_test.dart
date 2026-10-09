@@ -9,6 +9,8 @@ import 'package:r16a_cloud_app/features/files/data/files_api.dart';
 import 'package:r16a_cloud_app/features/files/data/upload_source.dart';
 import 'package:r16a_cloud_app/features/files/domain/file_sort.dart';
 
+import '../fakes.dart';
+
 /// Records the outgoing request and replies with a fixed status and body,
 /// standing in for the real `r16a-cloud` backend.
 class _StubAdapter implements HttpClientAdapter {
@@ -192,6 +194,16 @@ void main() {
     expect(adapter.lastRequest?.method, 'PUT');
     expect(adapter.lastRequest?.path, '/fs/f1');
     expect(adapter.lastRequest?.data, {'name': 'b.txt'});
+  });
+
+  test('move puts the current name and the target folder', () async {
+    final (api, adapter) = _apiWith(_StubAdapter(json: _fileJson()));
+
+    await api.move(fakeFile('f1', name: 'a.txt'), 'dir-2');
+
+    expect(adapter.lastRequest?.method, 'PUT');
+    expect(adapter.lastRequest?.path, '/fs/f1');
+    expect(adapter.lastRequest?.data, {'name': 'a.txt', 'parentId': 'dir-2'});
   });
 
   test('updateSharing patches sharedWithIds', () async {

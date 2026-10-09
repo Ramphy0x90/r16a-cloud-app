@@ -82,7 +82,11 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   (photo_view, swipe between the folder's images). Mutations: create folder, rename, share
   (`shareCandidatesProvider`, `SessionApi.listUsers`), delete + bulk delete, selection mode
   (options "Select" or long-press menu); prompts/snackbars in `file_actions.dart`, cache invalidated
-  on every mutation. Upload: `FileUploader` (multipart ≤ 100 MB, else chunked init/parts/complete,
+  on every mutation. Move (mobile-only; long-press menu + selection bar): `showMoveDestinationSheet`
+  browses folders (`folderChildrenProvider`, stops paging at the first file), `FilesApi.move` =
+  `PUT /fs/{id}` `{name, parentId}`; invalidates source + target folders. **Can't move to root**: backend
+  treats `parentId: null` as "unchanged" (needs a backend change); its move event also only names the
+  target folder, so other devices don't see the source folder change until its cache expires. Upload: `FileUploader` (multipart ≤ 100 MB, else chunked init/parts/complete,
   streamed via `UploadSource.openRead`), `UploadController` (2 concurrent, inline progress + errors
   banners), pickers in `upload_picker.dart` (file_picker / image_picker, behind `uploadPickerProvider`).
   Download: `FileDownloads` (background_downloader): token link for one file, zip `POST /fs/download`

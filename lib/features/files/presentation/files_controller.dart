@@ -12,7 +12,8 @@ import 'files_state.dart';
 /// (`pages/files/files.ts`): folder stack, My files / Shared tabs, sort,
 /// cursor paging guarded by a generation counter so a stale "load more"
 /// never lands after a navigation or sort change, and create / rename /
-/// share / delete with folder-cache invalidation.
+/// share / delete / move with folder-cache invalidation. Move has no web
+/// equivalent.
 ///
 /// Mutation methods throw `ApiException` on failure so the screen can
 /// report it; the list is left as it was.
@@ -187,6 +188,24 @@ class FilesController extends Notifier<FilesState> {
 
   Future<void> delete(FileItem file) => _deleteAll([file]);
 
+  Future<void> move(FileItem file, FileItem target) => _moveAll([file], target);
+
+  /// Moves the selection into [target]; like [deleteSelected], any failure
+  /// reloads the folder so the list shows what really stayed.
+  Future<void> moveSelected(FileItem target) async {
+    final files = state.selectedFiles;
+    if (files.isEmpty) return;
+    try {
+      await _moveAll(files, target);
+    } catch (_) {
+      if (ref.mounted) {
+        cancelSelection();
+        _loadSafely();
+      }
+      rethrow;
+    }
+  }
+
   /// Something outside this controller changed [parentId] (uploads, delta
   /// sync): drop its cached pages, tell other screens media changed, and
   /// if it is still the open folder reload it in place — the web's
@@ -235,6 +254,28 @@ class FilesController extends Notifier<FilesState> {
     }
     if (!ref.mounted) return;
     ref.read(mediaRevisionProvider.notifier).bump();
+
+    final ids = {for (final f in files) f.id};
+    state = state.copyWith(
+      items: state.items.where((f) => !ids.contains(f.id)).toList(),
+      selectionMode: false,
+      selectedIds: const {},
+    );
+  }
+
+  Future<void> _moveAll(List<FileItem> files, FileItem target) async {
+    final api = ref.read(filesApiProvider);
+    final user = await ref.read(currentUserProvider.future);
+    final parentId = state.currentFolder?.id;
+    try {
+      await Future.wait(files.map((f) => api.move(f, target.id)));
+    } finally {
+      // Also on partial failure. The backend's move event only names the
+      // target folder, and its folder ETag misses moves-out, so both go.
+      _invalidate(user.id, parentId);
+      _invalidate(user.id, target.id);
+    }
+    if (!ref.mounted) return;
 
     final ids = {for (final f in files) f.id};
     state = state.copyWith(

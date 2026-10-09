@@ -110,6 +110,41 @@ void main() {
     expect(api.renamed, [('a', 'b.txt')]);
   });
 
+  testWidgets('long-press → Move browses folders and moves into one', (
+    tester,
+  ) async {
+    final docs = fakeFile('docs', isDirectory: true);
+    final other = fakeFile('other', isDirectory: true);
+    await pumpWith(tester, [docs, other, fakeFile('a')]);
+
+    await tester.longPress(find.text('other'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move'));
+    await tester.pumpAndSettle();
+
+    final sheet = find.byType(BottomSheet);
+    Finder inSheet(Finder f) => find.descendant(of: sheet, matching: f);
+    final moveHere = inSheet(find.widgetWithText(FilledButton, 'Move here'));
+
+    // Root (served from the listing cache): can't move there; the moved
+    // folder itself isn't offered.
+    expect(inSheet(find.text('My files')), findsOneWidget);
+    expect(tester.widget<FilledButton>(moveHere).onPressed, isNull);
+    expect(inSheet(find.text('other')), findsNothing);
+
+    await tester.tap(inSheet(find.text('docs')));
+    await tester.pump();
+    api.calls.last.response.complete(fakePage([]));
+    await tester.pumpAndSettle();
+    expect(inSheet(find.text('No folders here')), findsOneWidget);
+
+    await tester.tap(moveHere);
+    await tester.pumpAndSettle();
+
+    expect(api.moved, [('other', 'docs')]);
+    expect(find.text('other'), findsNothing);
+  });
+
   testWidgets('selection mode: count, single-item actions, bulk delete', (
     tester,
   ) async {

@@ -138,6 +138,22 @@ class FilesApi {
     }
   }
 
+  /// Moves [file] into the folder [parentId] (`PUT /fs/{id}`; `name` is
+  /// required there, so the current one is sent back). The backend reads a
+  /// `null` parent as "unchanged", so nothing can move to the root yet.
+  /// 409 when the target already holds that name.
+  Future<FileItem> move(FileItem file, String parentId) async {
+    try {
+      final response = await _dio.put<Map<String, dynamic>>(
+        '/fs/${file.id}',
+        data: {'name': file.name, 'parentId': parentId},
+      );
+      return FileItem.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
+
   Future<FileItem> updateSharing(String id, List<String> sharedWithIds) async {
     try {
       final response = await _dio.patch<Map<String, dynamic>>(

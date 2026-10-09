@@ -200,6 +200,81 @@ void main() {
     });
   });
 
+  group('move', () {
+    test('removes the item and clears both folders\' caches', () async {
+      final docs = fakeFile('docs', isDirectory: true);
+      await start([docs, fakeFile('a')]);
+
+      await controller().move(state().items[1], docs);
+
+      expect(api.moved, [('a', 'docs')]);
+      expect(ids(), ['docs']);
+
+      // The target refetches instead of serving a cached copy without 'a'.
+      controller().openFolder(docs);
+      await _settle();
+      expect(api.calls.last.parentId, 'docs');
+      expect(api.calls, hasLength(2));
+    });
+
+    test('bulk move exits selection mode', () async {
+      final docs = fakeFile('docs', isDirectory: true);
+      await start([docs, fakeFile('a'), fakeFile('b')]);
+      controller().setSelectionMode(true);
+      controller().toggleSelected(state().items[1]);
+      controller().toggleSelected(state().items[2]);
+
+      await controller().moveSelected(docs);
+
+      expect(api.moved, unorderedEquals([('a', 'docs'), ('b', 'docs')]));
+      expect(ids(), ['docs']);
+      expect(state().selectionMode, isFalse);
+    });
+
+    test('a partial bulk failure reloads the folder from the server', () async {
+      final docs = fakeFile('docs', isDirectory: true);
+      await start([docs, fakeFile('a'), fakeFile('b')]);
+      api.failingMoves.add('b');
+      controller().setSelectionMode(true);
+      controller().toggleSelected(state().items[1]);
+      controller().toggleSelected(state().items[2]);
+
+      await expectLater(
+        controller().moveSelected(docs),
+        throwsA(isA<ApiException>()),
+      );
+      await _settle();
+
+      expect(state().selectionMode, isFalse);
+      expect(api.calls, hasLength(2));
+      api.calls.last.response.complete(fakePage([docs, fakeFile('b')]));
+      await _settle();
+      expect(ids(), ['docs', 'b']);
+    });
+  });
+
+  group('folderChildrenProvider', () {
+    test('lists folders only and stops paging at the first file', () async {
+      container.listen(folderChildrenProvider(null), (_, _) {});
+      await _settle();
+      api.calls.single.response.complete(
+        fakePage([fakeFile('d1', isDirectory: true)], nextCursor: 'c1'),
+      );
+      await _settle();
+      api.calls.last.response.complete(
+        fakePage([
+          fakeFile('d2', isDirectory: true),
+          fakeFile('f1'),
+        ], nextCursor: 'c2'),
+      );
+      await _settle();
+
+      final folders = container.read(folderChildrenProvider(null)).value!;
+      expect(folders.map((f) => f.id), ['d1', 'd2']);
+      expect(api.calls, hasLength(2));
+    });
+  });
+
   test('load more does not duplicate a locally created folder', () async {
     container.listen(filesControllerProvider, (_, _) {});
     await _settle();

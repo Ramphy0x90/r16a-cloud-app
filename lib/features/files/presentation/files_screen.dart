@@ -222,7 +222,7 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
 
   /// Web `files-toolbar` in selection mode: cancel, count, and the actions
   /// valid for the selection (share / rename need exactly one item; only
-  /// download on the read-only Shared tab).
+  /// download on the read-only Shared tab). Move is mobile-only.
   PreferredSizeWidget _buildSelectionAppBar(FilesState state) {
     final controller = ref.read(filesControllerProvider.notifier);
     final selected = state.selectedFiles;
@@ -254,7 +254,12 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
             tooltip: 'Rename',
           ),
         ],
-        if (!state.readOnly && selected.isNotEmpty)
+        if (!state.readOnly && selected.isNotEmpty) ...[
+          IconButton(
+            onPressed: _actions.moveSelected,
+            icon: const Icon(Icons.drive_file_move_outline),
+            tooltip: 'Move',
+          ),
           IconButton(
             onPressed: _actions.deleteSelected,
             icon: Icon(
@@ -263,6 +268,7 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
             ),
             tooltip: 'Delete',
           ),
+        ],
       ],
     );
   }

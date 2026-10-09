@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/model/file_item.dart';
 import '../../../core/network/dio_client.dart';
 import '../../../core/session/session_providers.dart';
 import '../../../core/session/user_preferences.dart';
@@ -9,6 +10,7 @@ import '../data/files_api.dart';
 import '../data/files_cache.dart';
 import '../data/listing_store.dart';
 import '../data/upload_source.dart';
+import '../domain/file_sort.dart';
 import 'file_delta_sync.dart';
 import 'files_controller.dart';
 import 'files_state.dart';
@@ -53,6 +55,33 @@ final shareCandidatesProvider = FutureProvider.autoDispose
       final me = await ref.watch(currentUserProvider.future);
       final users = await ref.watch(sessionApiProvider).listUsers();
       return users.where((u) => u.id != me.id && u.id != ownerId).toList();
+    });
+
+/// The sub-folders of a folder (`null` = root) for the move destination
+/// picker, by name. Listings put folders first, so paging stops at the
+/// first page that reaches a file.
+final folderChildrenProvider = FutureProvider.autoDispose
+    .family<List<FileItem>, String?>((ref, parentId) async {
+      final user = await ref.watch(currentUserProvider.future);
+      final cache = ref.watch(filesCacheProvider);
+      final folders = <FileItem>[];
+      var page = await cache.getFirstPage(ownerId: user.id, parentId: parentId);
+      while (true) {
+        folders.addAll(page.content.where((f) => f.isDirectory));
+        final cursor = page.nextCursor;
+        if (!page.hasMore ||
+            cursor == null ||
+            page.content.any((f) => !f.isDirectory)) {
+          return folders;
+        }
+        page = await cache.getNextPage(
+          ownerId: user.id,
+          parentId: parentId,
+          cursor: cursor,
+          sortField: FileSortField.name,
+          sortDirection: FileSortDirection.asc,
+        );
+      }
     });
 
 final fileUploaderProvider = Provider(

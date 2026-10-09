@@ -13,6 +13,7 @@ import 'files_controller.dart';
 import 'files_providers.dart';
 import 'files_state.dart';
 import 'widgets/file_context_sheet.dart';
+import 'widgets/move_destination_sheet.dart';
 import 'widgets/share_sheet.dart';
 import 'widgets/upload_source_sheet.dart';
 
@@ -20,8 +21,9 @@ import 'widgets/upload_source_sheet.dart';
 /// sheet / picker), call the controllers, report failures. Mirrors the web
 /// `FilesPage` handlers (`openCreateFolderModal`, `renameFile`,
 /// `confirmDelete`, `confirmBulkDelete`, `saveShareSettings`,
-/// `triggerUpload`); the web only logs errors, here they surface as
-/// snackbars (upload failures go to the upload errors banner, as on web).
+/// `triggerUpload`), plus a mobile-only move. The web only logs errors;
+/// here they surface as snackbars (upload failures go to the upload errors
+/// banner, as on web).
 class FileActions {
   FileActions(this._context, this._ref);
 
@@ -83,6 +85,30 @@ class FileActions {
     if (name == null || name == file.name) return;
     await _run(() => _controller.rename(file, name), 'Could not rename.');
   }
+
+  Future<void> move(FileItem file) async {
+    final target = await _pickMoveTarget([file]);
+    if (target == null) return;
+    await _run(() => _controller.move(file, target), 'Could not move.');
+  }
+
+  Future<void> moveSelected() async {
+    final files = _ref.read(filesControllerProvider).selectedFiles;
+    if (files.isEmpty) return;
+    final target = await _pickMoveTarget(files);
+    if (target == null) return;
+    await _run(
+      () => _controller.moveSelected(target),
+      'Could not move all items.',
+    );
+  }
+
+  Future<FileItem?> _pickMoveTarget(List<FileItem> files) =>
+      showMoveDestinationSheet(
+        context: _context,
+        files: files,
+        sourceFolderId: _ref.read(filesControllerProvider).currentFolder?.id,
+      );
 
   /// The sheet reports its own save failures inline.
   Future<void> share(FileItem file) => showShareSheet(
@@ -172,6 +198,8 @@ class FileActions {
         _controller.startSelection(file);
       case FileAction.rename:
         await rename(file);
+      case FileAction.move:
+        await move(file);
       case FileAction.share:
         await share(file);
       case FileAction.delete:

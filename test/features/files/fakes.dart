@@ -146,6 +146,12 @@ class FakeFilesApi extends FilesApi {
   final renamed = <(String, String)>[];
   final sharingUpdates = <(String, List<String>)>[];
 
+  /// (file id, target folder id).
+  final moved = <(String, String)>[];
+
+  /// Ids whose move fails with a 409.
+  final failingMoves = <String>{};
+
   /// When set, every mutation fails with this.
   ApiException? mutationError;
 
@@ -164,6 +170,16 @@ class FakeFilesApi extends FilesApi {
     if (mutationError case final e?) throw e;
     renamed.add((id, name));
     return fakeFile(id, name: name);
+  }
+
+  @override
+  Future<FileItem> move(FileItem file, String parentId) async {
+    if (mutationError case final e?) throw e;
+    if (failingMoves.contains(file.id)) {
+      throw const ApiException('exists', statusCode: 409);
+    }
+    moved.add((file.id, parentId));
+    return fakeFile(file.id, parentId: parentId);
   }
 
   @override
