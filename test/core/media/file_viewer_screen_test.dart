@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:r16a_cloud_app/app/theme/app_colors.dart';
+import 'package:r16a_cloud_app/app/theme/app_theme.dart';
 import 'package:r16a_cloud_app/core/media/file_viewer_screen.dart';
 import 'package:r16a_cloud_app/core/media/media_providers.dart';
 import 'package:r16a_cloud_app/core/model/file_item.dart';
@@ -57,6 +59,30 @@ void main() {
     );
     await tester.pump();
   }
+
+  testWidgets('the title stays light on the dark bar in the light theme', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mediaApiProvider.overrideWithValue(FakeMediaApi()),
+          fileDownloadsProvider.overrideWithValue(downloads),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          home: FileViewerScreen(
+            files: [fakeFile('a', extension: 'jpg')],
+            initialIndex: 0,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final style = DefaultTextStyle.of(tester.element(find.text('a.jpg'))).style;
+    expect(style.color, AppColors.darkForeground);
+  });
 
   testWidgets('Download saves the image on screen', (tester) async {
     await pumpViewer(tester);

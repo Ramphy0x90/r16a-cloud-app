@@ -56,6 +56,11 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.darkBackground.withValues(alpha: 0.6),
         foregroundColor: AppColors.darkForeground,
+        // The theme's title style carries its own (light-theme) color,
+        // which would win over foregroundColor on this always-dark bar.
+        titleTextStyle: Theme.of(
+          context,
+        ).appBarTheme.titleTextStyle?.copyWith(color: AppColors.darkForeground),
         title: Text(
           widget.files[_index].name,
           maxLines: 1,
