@@ -30,10 +30,13 @@ class OidcService {
     return _toStoredTokens(response);
   }
 
-  /// Exchanges a refresh token for a fresh access token.
-  /// Returns `null` if the exchange fails (expired/revoked refresh token) —
-  /// caller should fall back to login.
-  Future<StoredTokens?> refresh(String refreshToken) async {
+  /// Exchanges [current]'s refresh token for a fresh access token.
+  ///
+  /// Returns `null` only when Authentik rejects the refresh token (expired,
+  /// revoked: an OAuth error such as `invalid_grant`); the session is over
+  /// then. Anything else (offline, timeout, IdP down) is rethrown so the
+  /// caller keeps the session and tries again later.
+  Future<StoredTokens?> refresh(StoredTokens current) async {
     try {
       final response = await _appAuth.token(
         TokenRequest(
@@ -41,15 +44,28 @@ class OidcService {
           Env.oidcRedirectUri,
           issuer: Env.oidcIssuer,
           scopes: Env.oidcScopes,
-          refreshToken: refreshToken,
+          refreshToken: current.refreshToken,
         ),
       );
 
-      return _toStoredTokens(response);
-    } catch (_) {
-      return null;
+      // Without refresh-token rotation the response carries no new refresh
+      // (or id) token; keep the ones we have.
+      return _toStoredTokens(response, previous: current);
+    } on FlutterAppAuthPlatformException catch (e) {
+      if (_rejectedGrantErrors.contains(e.platformErrorDetails.error)) {
+        return null;
+      }
+      rethrow;
     }
   }
+
+  /// Token-endpoint errors (RFC 6749 §5.2) meaning the refresh token will
+  /// never work again.
+  static const _rejectedGrantErrors = {
+    'invalid_grant',
+    'invalid_client',
+    'unauthorized_client',
+  };
 
   /// Ends the Authentik session. Best-effort — callers should clear local
   /// tokens regardless of whether this succeeds (offline logout).
@@ -67,7 +83,10 @@ class OidcService {
     }
   }
 
-  StoredTokens _toStoredTokens(TokenResponse response) {
+  StoredTokens _toStoredTokens(
+    TokenResponse response, {
+    StoredTokens? previous,
+  }) {
     final accessToken = response.accessToken;
     final expiry = response.accessTokenExpirationDateTime;
     if (accessToken == null || expiry == null) {
@@ -76,8 +95,8 @@ class OidcService {
 
     return StoredTokens(
       accessToken: accessToken,
-      refreshToken: response.refreshToken,
-      idToken: response.idToken,
+      refreshToken: response.refreshToken ?? previous?.refreshToken,
+      idToken: response.idToken ?? previous?.idToken,
       accessTokenExpiry: expiry,
     );
   }
