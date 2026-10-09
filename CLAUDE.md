@@ -41,6 +41,7 @@ flutter test tool/branding/render_branding_test.dart   # SVG -> assets/branding/
 dart run flutter_launcher_icons                          # config: flutter_launcher_icons.yaml
 dart run flutter_native_splash:create                    # config: flutter_native_splash.yaml
 cp assets/branding/web/*.png ../r16a-cloud_client/public/icons/   # web PWA icons
+flutter test tool/branding/render_store_graphics_test.dart   # Play icon + feature graphic
 # flutter_launcher_icons rewrites ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS
 # in ios/Runner.xcodeproj/project.pbxproj to "AppIcon" — revert that hunk (must stay YES).
 ```
@@ -124,6 +125,11 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   Keep it true: domovoi.cloud is behind Cloudflare; cloud.r16a.cloud (the app's API) and auth.r16a.cloud
   are not. Backend purges file events after 90 days (`FileEventRetentionTask`).
   Deferred by user: crash-reporting service.
+- Play Store prep: `docs/PLAY_STORE.md` (blockers, listing text, App content + Data safety answers,
+  permissions) and `docs/QA_CHECKLIST.md` (manual release QA). Changing what the app collects, sends or
+  asks permission for means updating both that file and the web privacy policy. Profile shows
+  "Version x.y.z (build)" (`appVersionProvider`, core/config, `package_info_plus` — approved).
+  Store graphics: `assets/branding/store/` (rendered, see Commands).
 
 Update this section when a phase step lands.
 

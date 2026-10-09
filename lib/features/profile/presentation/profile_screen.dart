@@ -9,6 +9,7 @@ import '../../../core/session/user_preferences.dart';
 import '../../../core/widgets/privacy_policy_link.dart';
 import '../../../core/widgets/status_message.dart';
 import 'profile_save_controller.dart';
+import 'widgets/app_version_label.dart';
 import 'widgets/profile_auth_card.dart';
 import 'widgets/profile_delete_account_card.dart';
 import 'widgets/profile_identity_card.dart';
@@ -99,6 +100,8 @@ class _ProfileContent extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         const Center(child: PrivacyPolicyLink()),
+        const SizedBox(height: 4),
+        const Center(child: AppVersionLabel()),
       ],
     );
   }

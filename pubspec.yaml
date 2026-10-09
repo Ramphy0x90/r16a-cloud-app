@@ -50,6 +50,7 @@ dependencies:
   url_launcher: ^6.3.3
   video_player: ^2.14.1
   chewie: ^1.17.2
+  package_info_plus: ^10.2.2
 
 dev_dependencies:
   flutter_test:
