@@ -139,8 +139,8 @@ class FileActions {
     await _run(_controller.deleteSelected, 'Could not delete all items.');
   }
 
-  /// Images open in the viewer, swiping through the listing's images;
-  /// everything else goes to the system "open with".
+  /// Images and videos open in the viewer, swiping through the listing's
+  /// media; everything else goes to the system "open with".
   Future<void> open(FileItem file) => openMediaFile(
     _context,
     _ref,

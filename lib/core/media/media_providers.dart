@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_controller.dart';
+import '../model/file_item.dart';
 import '../network/dio_client.dart';
 import 'file_downloads.dart';
 import 'media_api.dart';
@@ -22,6 +23,16 @@ final fileDownloadsProvider = Provider(
     ref.read(authControllerProvider.notifier).getValidAccessToken,
   ),
 );
+
+/// Where the in-app player streams a video from: a short-lived token link
+/// (`GET /fs/download/token`, Range-capable, no bearer header), so the
+/// platform player fetches it directly. Tokens last 5 minutes; the player
+/// asks again when one runs out mid-video.
+final videoSourceProvider = Provider<Future<Uri> Function(FileItem)>((ref) {
+  final api = ref.watch(mediaApiProvider);
+  return (file) async =>
+      api.tokenDownloadUri(await api.getDownloadToken(file.id));
+});
 
 /// Bumped whenever the user's media changes from inside the app — uploads,
 /// deletes, changes delta sync picks up — so screens showing it elsewhere

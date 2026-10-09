@@ -104,6 +104,11 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   `main.dart`, also run on sign-out); shared `StatusMessage` for empty/error states; haptics on
   selection/delete; hero thumbnail → viewer (`filesHeroPrefix` / `photosHeroPrefix`).
   Launcher icon + native splash generated from the logo SVGs (see Commands).
+- Video playback (mobile-only; web shows thumbnails): `FileViewerScreen` pages through images *and*
+  videos; videos are a `VideoPage` (video_player + chewie) streamed from `videoSourceProvider` (5-min
+  download-token URL, Range-capable, no bearer). Playback errors fetch a fresh link and resume (max 2);
+  unplayable formats (MKV/AVI, WebM on iOS) fall back to "Open with another app" (`openWithOtherApp`).
+  iOS dev against plain-http localhost would need ATS `NSAllowsLocalNetworking` (not added).
 - Account deletion: Profile → "Delete account" (typed confirmation) → `DELETE /api/user/me` (backend
   `AccountDeletionService` erases files, storage, thumbnails, events, shares, uploads, user) → logout.
   The web client has the same flow (Profile → Delete account).

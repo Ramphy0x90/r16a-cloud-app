@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_view/photo_view.dart';
 
@@ -8,11 +7,14 @@ import '../model/file_item.dart';
 import 'media_actions.dart';
 import 'media_images.dart';
 import 'media_providers.dart';
+import 'widgets/video_page.dart';
+import 'widgets/viewer_placeholder.dart';
 
-/// Full-screen image viewer — the native take on the web's
+/// Full-screen media viewer — the native take on the web's
 /// `image-preview-modal`: thumbnail / blurhash placeholder while the full
-/// image loads, pinch-zoom, swiping between the given images, and download
-/// / share-via actions for the one on screen.
+/// image loads, pinch-zoom, swiping between the given images and videos
+/// (videos play in place, see [VideoPage]), and download / share-via
+/// actions for the one on screen.
 class FileViewerScreen extends ConsumerStatefulWidget {
   const FileViewerScreen({
     super.key,
@@ -21,7 +23,7 @@ class FileViewerScreen extends ConsumerStatefulWidget {
     this.heroTagPrefix,
   });
 
-  /// Images of the current listing, in listing order.
+  /// Images and videos of the current listing, in listing order.
   final List<FileItem> files;
   final int initialIndex;
 
@@ -62,7 +64,7 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: const Icon(Icons.close_rounded),
-          tooltip: 'Close image',
+          tooltip: 'Close',
         ),
         actions: [
           IconButton(
@@ -88,11 +90,21 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
             final file = widget.files[index];
             final prefix = widget.heroTagPrefix;
             final heroTag = prefix == null ? null : '$prefix${file.id}';
-            final placeholder = _Placeholder(
+            final placeholder = ViewerPlaceholder(
               file: file,
               thumbnail: FileThumbnailImage(file.id, thumbnails),
               heroTag: heroTag,
             );
+
+            if (file.isVideo) {
+              return VideoPage(
+                key: ValueKey(file.id),
+                file: file,
+                active: index == _index,
+                placeholder: placeholder,
+                onOpenWith: () => openWithOtherApp(context, ref, file),
+              );
+            }
 
             return PhotoView(
               key: ValueKey(file.id),
@@ -119,48 +131,5 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
         ),
       ),
     );
-  }
-}
-
-/// What the web modal shows while `loading`: the cached thumbnail if any,
-/// else the blurhash, with a spinner on top.
-class _Placeholder extends StatelessWidget {
-  const _Placeholder({
-    required this.file,
-    required this.thumbnail,
-    required this.heroTag,
-  });
-
-  final FileItem file;
-  final ImageProvider thumbnail;
-  final Object? heroTag;
-
-  @override
-  Widget build(BuildContext context) {
-    final hash = file.blurHash;
-
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        if (hash != null) BlurHash(hash: hash, imageFit: BoxFit.contain),
-        _hero(
-          Image(
-            image: thumbnail,
-            fit: BoxFit.contain,
-            gaplessPlayback: true,
-            errorBuilder: (context, error, stackTrace) =>
-                const SizedBox.shrink(),
-          ),
-        ),
-        const Center(
-          child: CircularProgressIndicator(color: AppColors.darkForeground),
-        ),
-      ],
-    );
-  }
-
-  Widget _hero(Widget child) {
-    final tag = heroTag;
-    return tag == null ? child : Hero(tag: tag, child: child);
   }
 }

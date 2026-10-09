@@ -12,10 +12,10 @@ import 'widgets/download_progress_dialog.dart';
 // User-facing file flows shared by Files and Photos. Each reports problems
 // with a snackbar on the nearest messenger.
 
-/// Opens [file]: images in the in-app viewer (swiping through [gallery],
-/// which should contain [file]; thumbnails tagged `'$heroTagPrefix$id'`
-/// fly in); everything else — videos included —
-/// fetched to a temporary copy and handed to the system "open with".
+/// Opens [file]: images and videos in the in-app viewer (swiping through
+/// the images and videos of [gallery], which should contain [file];
+/// thumbnails tagged `'$heroTagPrefix$id'` fly in); anything else goes to
+/// [openWithOtherApp].
 Future<void> openMediaFile(
   BuildContext context,
   WidgetRef ref,
@@ -23,22 +23,31 @@ Future<void> openMediaFile(
   required List<FileItem> gallery,
   String? heroTagPrefix,
 }) async {
-  if (file.isImage) {
-    final images = gallery.where((f) => f.isImage).toList();
-    final index = images.indexWhere((f) => f.id == file.id);
-    // Root navigator: the viewer covers the dock.
-    await Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute<void>(
-        builder: (_) => FileViewerScreen(
-          files: index < 0 ? [file] : images,
-          initialIndex: index < 0 ? 0 : index,
-          heroTagPrefix: heroTagPrefix,
-        ),
-      ),
-    );
-    return;
+  if (!file.isImage && !file.isVideo) {
+    return openWithOtherApp(context, ref, file);
   }
 
+  final media = gallery.where((f) => f.isImage || f.isVideo).toList();
+  final index = media.indexWhere((f) => f.id == file.id);
+  // Root navigator: the viewer covers the dock.
+  await Navigator.of(context, rootNavigator: true).push(
+    MaterialPageRoute<void>(
+      builder: (_) => FileViewerScreen(
+        files: index < 0 ? [file] : media,
+        initialIndex: index < 0 ? 0 : index,
+        heroTagPrefix: heroTagPrefix,
+      ),
+    ),
+  );
+}
+
+/// Fetches [file] to a temporary copy and hands it to the system
+/// "open with".
+Future<void> openWithOtherApp(
+  BuildContext context,
+  WidgetRef ref,
+  FileItem file,
+) async {
   final messenger = ScaffoldMessenger.of(context);
   final path = await _fetchWithProgress(context, ref, file, 'Opening');
   if (path == null) return;

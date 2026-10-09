@@ -12,8 +12,8 @@ import 'widgets/year_header.dart';
 
 /// Ported from the web client's `pages/photos`: a timeline of year
 /// sections, each a square grid that loads its photos as it scrolls into
-/// view. Images open in the viewer (swiping through the year's loaded
-/// images); videos open in another app.
+/// view. Photos and videos open in the viewer, swiping through the year's
+/// loaded media.
 class PhotosScreen extends ConsumerWidget {
   const PhotosScreen({super.key});
 
