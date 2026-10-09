@@ -67,4 +67,31 @@ void main() {
     expect(dashboard.recentFiles, hasLength(1));
     expect(dashboard.recentFiles.single.name, 'Q3-roadmap.pdf');
   });
+
+  test('getFile requests /fs/{id} and parses a FileItem', () async {
+    final adapter = _StubAdapter({
+      'id': 'f1',
+      'name': 'beach.jpg',
+      'description': null,
+      'fsPath': '/beach.jpg',
+      'isDirectory': false,
+      'visibility': 'PRIVATE',
+      'parentId': 'folder-1',
+      'ownerId': 'owner-1',
+      'ownerDisplayName': 'Owner',
+      'sharedWithIds': <String>[],
+      'createdAt': '2026-09-24T14:32:00Z',
+      'updatedAt': '2026-09-24T14:32:00Z',
+      'takenAt': null,
+      'blurHash': null,
+    });
+    final dio = Dio(BaseOptions(baseUrl: 'http://test'))..httpClientAdapter = adapter;
+
+    final file = await DashboardApi(dio).getFile('f1');
+
+    expect(adapter.lastRequest?.method, 'GET');
+    expect(adapter.lastRequest?.path, '/fs/f1');
+    expect(file.name, 'beach.jpg');
+    expect(file.isImage, isTrue);
+  });
 }

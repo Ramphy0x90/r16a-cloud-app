@@ -19,7 +19,7 @@ final dioProvider = Provider<Dio>((ref) {
   );
 
   dio.interceptors
-    ..add(AuthInterceptor(ref))
+    ..add(AuthInterceptor(ref, dio))
     ..add(NetworkStatusInterceptor(ref));
 
   return dio;

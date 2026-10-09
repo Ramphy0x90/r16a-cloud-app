@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/logging/app_logger.dart';
+import '../../../core/media/media_actions.dart';
+import '../../../core/navigation/home_tab.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/widgets/status_message.dart';
 import '../domain/dashboard_metrics.dart';
 import 'dashboard_metric_specs.dart';
@@ -51,6 +55,37 @@ class _DashboardContent extends ConsumerWidget {
     await ref.read(dashboardProvider.future);
   }
 
+  /// Fetches the full file, then opens it like Files does: images in the
+  /// viewer, anything else through "open with".
+  Future<void> _open(
+    BuildContext context,
+    WidgetRef ref,
+    RecentFileItem recent,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final file = await ref.read(dashboardApiProvider).getFile(recent.id);
+      if (!context.mounted) return;
+      await openMediaFile(context, ref, file, gallery: [file]);
+    } catch (e, stack) {
+      final gone = e is ApiException && e.statusCode == 404;
+      if (gone) {
+        ref.invalidate(dashboardProvider);
+      } else {
+        AppLogger.error(e, stack, 'Opening recent file failed');
+      }
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              gone ? 'This file no longer exists.' : 'Could not open the file.',
+            ),
+          ),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
@@ -79,8 +114,30 @@ class _DashboardContent extends ConsumerWidget {
           ),
         ],
         const SizedBox(height: 24),
-        Text('Recent files', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Recent files',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            // Mirrors `.view-all-link` (`routerLink="/files"`).
+            TextButton.icon(
+              onPressed: () =>
+                  ref.read(homeTabProvider.notifier).select(HomeTab.files),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+              iconAlignment: IconAlignment.end,
+              label: const Text('View all', textAlign: TextAlign.end),
+              style: TextButton.styleFrom(
+                foregroundColor: scheme.onSurfaceVariant,
+                textStyle: const TextStyle(fontSize: 13),
+                visualDensity: VisualDensity.compact,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
         Expanded(
           child: DecoratedBox(
             decoration: BoxDecoration(borderRadius: BorderRadius.circular(16)),
@@ -119,7 +176,10 @@ class _DashboardContent extends ConsumerWidget {
                       padding: const EdgeInsets.fromLTRB(0, 8, 0, 20),
                       children: [
                         for (final file in data.recentFiles)
-                          RecentFileTile(file: file),
+                          RecentFileTile(
+                            file: file,
+                            onTap: () => _open(context, ref, file),
+                          ),
                       ],
                     ),
             ),

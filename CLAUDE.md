@@ -59,7 +59,11 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 - Models: hand-written `fromJson` / `copyWith`. **No `freezed` / `json_serializable` / codegen yet.** Don't introduce without asking.
 - OIDC: reuses the existing `r16a-cloud-local` Authentik provider with an added redirect URI
   (see `core/config/env.dart`), not a dedicated client as plan §2 says.
-- 401 handling: `AuthInterceptor` logs out on 401, no refresh-and-retry yet.
+- 401 handling: `AuthController` refreshes 30s before expiry, single-flight (parallel requests share one
+  refresh). `AuthInterceptor` retries a 401 once after `refreshAfterRejection` (not streamed/multipart
+  bodies). Only an OAuth rejection of the refresh token (`invalid_grant`…) ends the session, locally
+  (no browser end-session); a refresh that can't reach Authentik keeps it and fails the request as a
+  connection error. Only the user's Profile logout calls the IdP end-session.
 - Persistent cache: Hive (`hive_ce`) only for first pages of folder listings (`HiveListingStore`,
   wired in `main.dart`; tests use `MemoryListingStore`). ETag revalidation lives in `FilesCache` +
   `FilesApi.getFilesRevalidating`, not in a Dio interceptor. Backend folder ETag ignores deletes /
@@ -68,7 +72,9 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 ## Status
 
 - Done: theme, dock shell, auth (login/refresh/logout), session (`/user/me`), profile + preferences autosave.
-- Dashboard: done, backed by `dashboard_api` + `dashboardProvider`.
+- Dashboard: done, backed by `dashboard_api` + `dashboardProvider`. "View all" switches to Files via
+  `homeTabProvider` (core/navigation, drives `HomeShell`); tapping a recent file fetches `GET /fs/{id}`
+  and opens it like Files (`openMediaFile`); 404 → "This file no longer exists." + dashboard reload.
 - Files: browse done (plan Phase 4 steps 9–10): `files_api`, 60s memory `files_cache`, `FilesController`
   (tabs, folder stack, sort, cursor paging), grid/list UI, options sheet. Shared tab is a flat list
   (folders there don't open). Thumbnails (`ThumbnailCache`: 400 LRU, 5 min, 4 concurrent) + blurhash

@@ -6,62 +6,78 @@ import '../../../../core/util/file_size.dart';
 import '../../domain/dashboard_metrics.dart';
 
 /// A single row in the "Recent files" list. Mirrors `.recent-row` on the
-/// web dashboard: icon, name + visibility chip, size + date.
+/// web dashboard: icon, name + visibility chip, size + date. Unlike web,
+/// the row is tappable ([onTap] opens the file).
 class RecentFileTile extends StatelessWidget {
-  const RecentFileTile({super.key, required this.file});
+  const RecentFileTile({super.key, required this.file, required this.onTap});
 
   final RecentFileItem file;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(10),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: scheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                iconForFileName(file.name),
+                size: 18,
+                color: scheme.onSurfaceVariant,
+              ),
             ),
-            child: Icon(iconForFileName(file.name), size: 18, color: scheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    file.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 3),
+                  _VisibilityChip(visibility: file.visibility),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  file.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  formatFileSize(file.sizeBytes),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 3),
-                _VisibilityChip(visibility: file.visibility),
+                Text(
+                  formatShortDateTime(file.updatedAt),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: scheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                formatFileSize(file.sizeBytes),
-                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                formatShortDateTime(file.updatedAt),
-                style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-              ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
