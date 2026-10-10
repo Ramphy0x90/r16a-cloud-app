@@ -51,6 +51,7 @@ dependencies:
   video_player: ^2.14.1
   chewie: ^1.17.2
   package_info_plus: ^10.2.2
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:

@@ -11,4 +11,6 @@ class PhotoYear {
     year: (json['year'] as num).toInt(),
     count: (json['count'] as num).toInt(),
   );
+
+  Map<String, dynamic> toJson() => {'year': year, 'count': count};
 }

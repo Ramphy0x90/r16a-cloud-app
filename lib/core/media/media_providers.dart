@@ -6,13 +6,21 @@ import '../network/dio_client.dart';
 import 'file_downloads.dart';
 import 'media_api.dart';
 import 'thumbnail_cache.dart';
+import 'thumbnail_store.dart';
 
 final mediaApiProvider = Provider((ref) => MediaApi(ref.watch(dioProvider)));
 
-/// App-wide like the web's root-provided `ImagePreviewService`. The app
-/// shell clears it on sign-out.
+/// Thumbnails on disk. None by default (tests); `main()` overrides it with
+/// the app-cache-directory store.
+final thumbnailStoreProvider = Provider<ThumbnailStore?>((ref) => null);
+
+/// App-wide like the web's root-provided `ImagePreviewService`. Cleared
+/// (disk included) on sign-out.
 final thumbnailCacheProvider = Provider(
-  (ref) => ThumbnailCache(ref.watch(mediaApiProvider)),
+  (ref) => ThumbnailCache(
+    ref.watch(mediaApiProvider),
+    store: ref.watch(thumbnailStoreProvider),
+  ),
 );
 
 /// Platform downloads; the bearer token for the zip endpoint comes from

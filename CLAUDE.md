@@ -65,8 +65,9 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   bodies). Only an OAuth rejection of the refresh token (`invalid_grant`…) ends the session, locally
   (no browser end-session); a refresh that can't reach Authentik keeps it and fails the request as a
   connection error. Only the user's Profile logout calls the IdP end-session.
-- Persistent cache: Hive (`hive_ce`) only for first pages of folder listings (`HiveListingStore`,
-  wired in `main.dart`; tests use `MemoryListingStore`). ETag revalidation lives in `FilesCache` +
+- Persistent cache: Hive (`hive_ce`) for first pages of folder listings (`HiveListingStore`),
+  the signed-in user (`HiveCurrentUserStore`) and Photos timelines (`HivePhotosBox`), all wired in
+  `main.dart` (tests use the in-memory defaults); thumbnails as files (`FileThumbnailStore`). ETag revalidation lives in `FilesCache` +
   `FilesApi.getFilesRevalidating`, not in a Dio interceptor. Backend folder ETag ignores deletes /
   moves-out, so every such change must go through `FilesCache.invalidateFolder`.
 
@@ -103,13 +104,16 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
   request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Viewer has
   Download + "Share via…" (step 19). Refreshes itself (debounced) on `mediaRevisionProvider` bumps, keeping
   loaded years whose count didn't change (pull-to-refresh reloads all).
+  Offline: `PhotosStore` (Hive box `photos`, per owner: years, shared media, each year's first page)
+  is shown when the server can't be reached; reloads once back online.
 - Phase 9 (partial): user-visible name **Domovoi** (internal name stays R16a Cloud); `AppLogger`
   (core/logging) catches all errors, `AppLogger.reporter` is the hook for a crash service; offline
   detection from real traffic (`NetworkStatusInterceptor`) + banner above the dock, Files serves stored
   listings of any age while offline; the signed-in user is stored too (`CurrentUserStore`, Hive, cleared on
   sign-out) so an offline cold start still opens them; Profile "Clear cache" (`clearCachesProvider`, extended in
   `main.dart`, also run on sign-out); shared `StatusMessage` for empty/error states; haptics on
-  selection/delete; hero thumbnail → viewer (`filesHeroPrefix` / `photosHeroPrefix`).
+  selection/delete; thumbnails also on disk (`FileThumbnailStore`, app cache dir, 150 MB LRU,
+  behind `ThumbnailCache`'s memory layer; `path_provider` approved); hero thumbnail → viewer (`filesHeroPrefix` / `photosHeroPrefix`).
   Launcher icon + native splash generated from the logo SVGs (see Commands).
 - Video playback (mobile-only; web shows thumbnails): `FileViewerScreen` pages through images *and*
   videos; videos are a `VideoPage` (video_player + chewie) streamed from `videoSourceProvider` (5-min

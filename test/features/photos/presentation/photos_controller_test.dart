@@ -2,7 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:r16a_cloud_app/core/media/media_providers.dart';
+import 'package:r16a_cloud_app/core/network/api_exception.dart';
+import 'package:r16a_cloud_app/core/network/network_status.dart';
 import 'package:r16a_cloud_app/core/session/session_providers.dart';
+import 'package:r16a_cloud_app/features/photos/data/photos_store.dart';
 import 'package:r16a_cloud_app/features/photos/domain/photo_year.dart';
 import 'package:r16a_cloud_app/features/photos/presentation/photos_controller.dart';
 import 'package:r16a_cloud_app/features/photos/presentation/photos_providers.dart';
@@ -20,6 +23,9 @@ Future<void> _settle() async {
 void main() {
   late FakePhotosApi api;
   late ProviderContainer container;
+  late PhotosStore store;
+
+  setUp(() => store = PhotosStore());
 
   PhotosState state() => container.read(photosControllerProvider);
   PhotosController controller() =>
@@ -31,6 +37,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         photosApiProvider.overrideWithValue(api),
+        photosStoreProvider.overrideWithValue(store),
         sessionApiProvider.overrideWithValue(FakeSessionApi()),
       ],
     );
@@ -225,5 +232,82 @@ void main() {
 
     expect(section(2025).own, isEmpty);
     expect(section(2025).canLoadMore, isTrue);
+  });
+
+  group('offline', () {
+    const unreachable = ApiException('Could not reach the server.');
+
+    Future<void> seedStore() async {
+      await store.saveTimeline('owner-1', const [
+        PhotoYear(year: 2025, count: 2),
+        PhotoYear(year: 2024, count: 1),
+      ], const []);
+      await store.saveFirstPage(
+        'owner-1',
+        2025,
+        photoPage([fakePhoto('a', DateTime.utc(2025))], nextCursor: 'c1'),
+      );
+    }
+
+    test('stores the timeline and first pages it loads', () async {
+      api = FakePhotosApi(years: const [PhotoYear(year: 2025, count: 1)]);
+      await start();
+      controller().loadMore(2025);
+      await _settle();
+      api.calls.single.response.complete(
+        photoPage([fakePhoto('a', DateTime.utc(2025))]),
+      );
+      await _settle();
+
+      final stored = await store.read('owner-1');
+      expect(stored!.years.single.year, 2025);
+      expect(stored.firstPages[2025]!.content.single.id, 'a');
+    });
+
+    test('server unreachable: shows the stored timeline', () async {
+      await seedStore();
+      api = FakePhotosApi()..yearsError = unreachable;
+      await start();
+
+      expect(state().error, isNull);
+      expect(state().sections.map((s) => s.year), [2025, 2024]);
+      expect(section(2025).own.map((f) => f.id), ['a']);
+      expect(section(2025).cursor, 'c1');
+      // A year never opened online stays placeholders.
+      expect(section(2024).started, isFalse);
+    });
+
+    test('an HTTP error still shows the error', () async {
+      await seedStore();
+      api = FakePhotosApi()
+        ..yearsError = const ApiException('Server error', statusCode: 500);
+      await start();
+
+      expect(state().error, isNotNull);
+    });
+
+    test('nothing stored: shows the error', () async {
+      api = FakePhotosApi()..yearsError = unreachable;
+      await start();
+
+      expect(state().error, isNotNull);
+    });
+
+    test('reloads once back online', () async {
+      await seedStore();
+      api = FakePhotosApi()..yearsError = unreachable;
+      await start();
+      container.read(networkStatusProvider.notifier).reportUnreachable();
+      expect(api.yearsCalls, 1);
+
+      api
+        ..yearsError = null
+        ..years = const [PhotoYear(year: 2026, count: 1)];
+      container.read(networkStatusProvider.notifier).reportReachable();
+      await _settle();
+
+      expect(api.yearsCalls, 2);
+      expect(state().sections.map((s) => s.year), [2026]);
+    });
   });
 }

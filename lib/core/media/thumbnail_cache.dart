@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'dart:typed_data';
 
 import 'media_api.dart';
+import 'thumbnail_store.dart';
 
 class _CachedThumbnail {
   _CachedThumbnail(this.bytes, this.expiresAt, this.lastAccessedAt);
@@ -19,8 +20,12 @@ class _CachedThumbnail {
 /// Waiting requests are served newest first (the web's `unshift` queue in
 /// `PhotosPage`), so after a fast scroll the tiles now on screen load
 /// before the ones scrolled past.
+///
+/// Mobile-only: behind the memory layer sits an optional [ThumbnailStore]
+/// on disk, read before the network (outside the fetch queue) and written
+/// after each fetch, so thumbnails survive restarts and show offline.
 class ThumbnailCache {
-  ThumbnailCache(this._api, {DateTime Function()? now})
+  ThumbnailCache(this._api, {this._store, DateTime Function()? now})
     : _now = now ?? DateTime.now;
 
   static const ttl = Duration(minutes: 5);
@@ -28,6 +33,7 @@ class ThumbnailCache {
   static const maxConcurrent = 4;
 
   final MediaApi _api;
+  final ThumbnailStore? _store;
   final DateTime Function() _now;
   final _cache = <String, _CachedThumbnail>{};
   final _inFlight = <String, Future<Uint8List?>>{};
@@ -49,20 +55,38 @@ class ThumbnailCache {
 
     // Block body on purpose: returning the removed future from the callback
     // would make `whenComplete` wait on itself.
-    return _inFlight[fileId] ??= _fetch(fileId).whenComplete(() {
+    return _inFlight[fileId] ??= _load(fileId).whenComplete(() {
       _inFlight.remove(fileId);
     });
   }
 
-  void clear() => _cache.clear();
+  /// Memory and disk (sign-out, Profile "Clear cache").
+  Future<void> clear() async {
+    _cache.clear();
+    await _store?.clear();
+  }
+
+  Future<Uint8List?> _load(String fileId) async {
+    final stored = await _store?.read(fileId);
+    if (stored != null) {
+      _remember(fileId, stored);
+      return stored;
+    }
+    return _fetch(fileId);
+  }
+
+  void _remember(String fileId, Uint8List bytes) {
+    final now = _now();
+    _cache[fileId] = _CachedThumbnail(bytes, now.add(ttl), now);
+    _evictExcess();
+  }
 
   Future<Uint8List?> _fetch(String fileId) async {
     await _acquire();
     try {
       final bytes = await _api.getThumbnail(fileId);
-      final now = _now();
-      _cache[fileId] = _CachedThumbnail(bytes, now.add(ttl), now);
-      _evictExcess();
+      _remember(fileId, bytes);
+      _store?.write(fileId, bytes);
       return bytes;
     } catch (_) {
       return null;
