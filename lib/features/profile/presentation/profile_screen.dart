@@ -50,7 +50,9 @@ class _ProfileContent extends ConsumerWidget {
   void _updatePreferences(WidgetRef ref, UserPreferences next) {
     // Reflect the change immediately; the debounced save below reconciles
     // with the server and adopts its response as the source of truth.
-    ref.read(currentUserProvider.notifier).setOptimistic(user.copyWith(preferences: next));
+    ref
+        .read(currentUserProvider.notifier)
+        .setOptimistic(user.copyWith(preferences: next));
     ref.read(profileSaveControllerProvider.notifier).schedule(next);
   }
 
@@ -62,15 +64,16 @@ class _ProfileContent extends ConsumerWidget {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
       children: [
-        ProfileIdentityCard(displayName: user.displayName, username: user.username),
+        ProfileIdentityCard(
+          displayName: user.displayName,
+          username: user.username,
+        ),
         const SizedBox(height: 16),
         ProfilePreferencesCard(
           theme: user.preferences.theme,
           defaultViewMode: user.preferences.defaultViewMode,
-          onThemeChanged: (value) => _updatePreferences(
-            ref,
-            user.preferences.copyWith(theme: value),
-          ),
+          onThemeChanged: (value) =>
+              _updatePreferences(ref, user.preferences.copyWith(theme: value)),
           onDefaultViewModeChanged: (value) => _updatePreferences(
             ref,
             user.preferences.copyWith(defaultViewMode: value),

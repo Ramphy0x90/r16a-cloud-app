@@ -17,25 +17,25 @@ String _sharedFiles(DashboardMetrics m) => m.sharedFiles.toString();
 
 const dashboardMetricSpecs = <MetricCardSpec>[
   MetricCardSpec(
-    icon: Icons.sd_storage_outlined,
+    icon: 'assets/icons/device-sd-card.svg',
     accent: _usedStorageAccent,
     title: 'Used storage',
     valueBuilder: _usedStorage,
   ),
   MetricCardSpec(
-    icon: Icons.cloud_upload_outlined,
+    icon: 'assets/icons/cloud-upload.svg',
     accent: _filesUploadedAccent,
     title: 'Files uploaded',
     valueBuilder: _filesUploaded,
   ),
   MetricCardSpec(
-    icon: Icons.image_outlined,
+    icon: 'assets/icons/photo-video.svg',
     accent: _photosAccent,
     title: 'Photos & videos',
     valueBuilder: _photosAndVideos,
   ),
   MetricCardSpec(
-    icon: Icons.ios_share_outlined,
+    icon: 'assets/icons/share-2.svg',
     accent: _sharedAccent,
     title: 'Shared files',
     valueBuilder: _sharedFiles,

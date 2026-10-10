@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'profile_card.dart';
 
@@ -17,13 +18,21 @@ class ProfileAuthCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const ProfileSectionHeader(title: 'Authentication', subtitle: 'Manage sessions'),
+          const ProfileSectionHeader(
+            title: 'Authentication',
+            subtitle: 'Manage sessions',
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: onLogout,
-              icon: Icon(Icons.logout_rounded, color: scheme.error, size: 18),
+              icon: SvgPicture.asset(
+                'assets/icons/logout.svg',
+                width: 18,
+                height: 18,
+                colorFilter: ColorFilter.mode(scheme.error, BlendMode.srcIn),
+              ),
               label: Text('Logout', style: TextStyle(color: scheme.error)),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: scheme.error.withValues(alpha: 0.4)),

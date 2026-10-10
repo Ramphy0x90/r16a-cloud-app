@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../domain/dashboard_metrics.dart';
 
@@ -13,7 +14,7 @@ class MetricCardSpec {
     required this.valueBuilder,
   });
 
-  final IconData icon;
+  final String icon;
   final Color accent;
   final String title;
   final String Function(DashboardMetrics metrics) valueBuilder;
@@ -47,7 +48,12 @@ class MetricCard extends StatelessWidget {
               color: spec.accent.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(spec.icon, color: spec.accent, size: 18),
+            child: SvgPicture.asset(
+              spec.icon,
+              width: 18,
+              height: 18,
+              colorFilter: ColorFilter.mode(spec.accent, BlendMode.srcIn),
+            ),
           ),
           const SizedBox(height: 12),
           Text(

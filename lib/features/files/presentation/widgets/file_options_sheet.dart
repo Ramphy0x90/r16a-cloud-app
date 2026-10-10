@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/session/user_preferences.dart';
 import '../../domain/file_sort.dart';
 import '../files_providers.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Select / view / sort menu — the native equivalent of the web
 /// `file-options` dropdown. View and sort update in place; "Select" closes
@@ -45,26 +46,35 @@ class _FileOptionsContent extends ConsumerWidget {
       ),
     );
 
-    Widget viewTile(DefaultFileView mode, IconData icon) => ListTile(
-      leading: Icon(icon),
+    Widget viewTile(DefaultFileView mode, String iconPath) => ListTile(
+      leading: SvgPicture.asset(
+        iconPath,
+        colorFilter: ColorFilter.mode(scheme.onSurfaceVariant, BlendMode.srcIn),
+      ),
       title: Text(mode.label),
       trailing: mode == viewMode
-          ? Icon(Icons.check_rounded, color: scheme.primary)
+          ? SvgPicture.asset(
+              'assets/icons/check.svg',
+              colorFilter: ColorFilter.mode(scheme.primary, BlendMode.srcIn),
+            )
           : null,
       onTap: () => controller.setViewMode(mode),
     );
 
     // Same rule as `FileOptions.setSortField`: tapping the active field
     // flips the direction, another field switches to it.
-    Widget sortTile(FileSortField field, IconData icon) => ListTile(
-      leading: Icon(icon),
+    Widget sortTile(FileSortField field, String iconPath) => ListTile(
+      leading: SvgPicture.asset(
+        iconPath,
+        colorFilter: ColorFilter.mode(scheme.onSurfaceVariant, BlendMode.srcIn),
+      ),
       title: Text(field.label),
       trailing: field == sortField
-          ? Icon(
+          ? SvgPicture.asset(
               sortDirection == FileSortDirection.asc
-                  ? Icons.arrow_upward_rounded
-                  : Icons.arrow_downward_rounded,
-              color: scheme.primary,
+                  ? 'assets/icons/arrow-narrow-up.svg'
+                  : 'assets/icons/arrow-narrow-down.svg',
+              colorFilter: ColorFilter.mode(scheme.primary, BlendMode.srcIn),
             )
           : null,
       onTap: () => field == sortField
@@ -76,10 +86,11 @@ class _FileOptionsContent extends ConsumerWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         ListTile(
-          leading: Icon(
+          leading: SvgPicture.asset(
             selectionMode
-                ? Icons.cancel_outlined
-                : Icons.check_circle_outline_rounded,
+                ? 'assets/icons/circle-x.svg'
+                : 'assets/icons/circle-check.svg',
+            colorFilter: ColorFilter.mode(scheme.primary, BlendMode.srcIn),
           ),
           title: Text(selectionMode ? 'Cancel selection' : 'Select'),
           onTap: () {
@@ -89,12 +100,12 @@ class _FileOptionsContent extends ConsumerWidget {
         ),
         const Divider(),
         sectionLabel('View'),
-        viewTile(DefaultFileView.grid, Icons.grid_view_rounded),
-        viewTile(DefaultFileView.list, Icons.view_list_rounded),
+        viewTile(DefaultFileView.grid, 'assets/icons/layout-grid.svg'),
+        viewTile(DefaultFileView.list, 'assets/icons/list-details.svg'),
         const Divider(),
         sectionLabel('Sort by'),
-        sortTile(FileSortField.name, Icons.sort_by_alpha_rounded),
-        sortTile(FileSortField.updatedAt, Icons.calendar_today_outlined),
+        sortTile(FileSortField.name, 'assets/icons/sort-a-z.svg'),
+        sortTile(FileSortField.updatedAt, 'assets/icons/calendar-clock.svg'),
         const SizedBox(height: 8),
       ],
     );

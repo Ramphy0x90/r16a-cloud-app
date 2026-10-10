@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../model/file_item.dart';
@@ -15,12 +16,22 @@ class FileTypeIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (file.isDirectory) {
-      return Icon(Icons.folder_rounded, size: size, color: AppColors.folder);
+      return SvgPicture.asset(
+        'assets/icons/folder.svg',
+        width: size,
+        height: size,
+        colorFilter: ColorFilter.mode(AppColors.folder, BlendMode.srcIn),
+      );
     }
-    return Icon(
+
+    return SvgPicture.asset(
       iconForFileName(file.name),
-      size: size,
-      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      width: size,
+      height: size,
+      colorFilter: ColorFilter.mode(
+        Theme.of(context).colorScheme.onSurfaceVariant,
+        BlendMode.srcIn,
+      ),
     );
   }
 }

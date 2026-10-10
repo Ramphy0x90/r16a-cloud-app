@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'profile_card.dart';
 
@@ -53,7 +54,12 @@ class _ProfileStorageCardState extends State<ProfileStorageCard> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _clearing ? null : _clear,
-              icon: const Icon(Icons.cleaning_services_outlined, size: 18),
+              icon: SvgPicture.asset(
+                'assets/icons/eraser.svg',
+                width: 18,
+                height: 18,
+                colorFilter: ColorFilter.mode(scheme.primary, BlendMode.srcIn),
+              ),
               label: Text(_clearing ? 'Clearing…' : 'Clear cache'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),

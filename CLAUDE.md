@@ -182,6 +182,9 @@ lib/
 - `GET /fs/download/token` is the only unauthenticated endpoint.
 - App id is **`cloud.domovoi.app`** on both platforms (Android `applicationId`/`namespace`, iOS
   `PRODUCT_BUNDLE_IDENTIFIER`). Permanent once published — never change it.
+- iOS minimum is **14.0** (`IPHONEOS_DEPLOYMENT_TARGET` in `ios/Runner.xcodeproj`): `background_downloader`
+  and `file_picker` require it. iOS builds run on GitHub's macOS runner (`.github/workflows/ios-build.yml`,
+  manual, unsigned `Domovoi.ipa`); this Linux machine can't build iOS.
 - OAuth redirect scheme `cloud.r16a.r16acloudapp` is defined in **three** places: `env.dart`,
   `android/app/build.gradle.kts` (`appAuthRedirectScheme`), `ios/Runner/Info.plist`. Change all or none.
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/util/date_format.dart';
 import '../../../../core/util/file_icons.dart';
@@ -33,10 +34,14 @@ class RecentFileTile extends StatelessWidget {
                 color: scheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
+              child: SvgPicture.asset(
                 iconForFileName(file.name),
-                size: 18,
-                color: scheme.onSurfaceVariant,
+                width: 18,
+                height: 18,
+                colorFilter: ColorFilter.mode(
+                  scheme.onSurfaceVariant,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
             const SizedBox(width: 12),

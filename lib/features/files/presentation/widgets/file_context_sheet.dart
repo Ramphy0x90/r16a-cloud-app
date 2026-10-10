@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/media/widgets/file_type_icon.dart';
 import '../../../../core/model/file_item.dart';
@@ -34,18 +35,28 @@ Future<FileAction?> showFileContextSheet({
       final scheme = Theme.of(context).colorScheme;
 
       Widget tile(FileAction action) {
-        final (icon, label) = switch (action) {
-          FileAction.open => (Icons.open_in_new_rounded, 'Open'),
-          FileAction.download => (Icons.download_rounded, 'Download'),
-          FileAction.select => (Icons.check_circle_outline_rounded, 'Select'),
-          FileAction.rename => (Icons.edit_outlined, 'Rename'),
-          FileAction.move => (Icons.drive_file_move_outline, 'Move'),
-          FileAction.share => (Icons.share_outlined, 'Share'),
-          FileAction.delete => (Icons.delete_outline_rounded, 'Delete'),
+        final (iconPath, label) = switch (action) {
+          FileAction.open => ('assets/icons/eye.svg', 'Open'),
+          FileAction.download => (
+            'assets/icons/cloud-download.svg',
+            'Download',
+          ),
+          FileAction.select => ('assets/icons/circle-check.svg', 'Select'),
+          FileAction.rename => ('assets/icons/edit.svg', 'Rename'),
+          FileAction.move => ('assets/icons/folder-symlink.svg', 'Move'),
+          FileAction.share => ('assets/icons/share-2.svg', 'Share'),
+          FileAction.delete => ('assets/icons/trash.svg', 'Delete'),
         };
-        final color = action == FileAction.delete ? scheme.error : null;
+
+        final color = action == FileAction.delete
+            ? scheme.error
+            : scheme.onSurfaceVariant;
+
         return ListTile(
-          leading: Icon(icon, color: color),
+          leading: SvgPicture.asset(
+            iconPath,
+            colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+          ),
           title: Text(label, style: TextStyle(color: color)),
           onTap: () => Navigator.of(context).pop(action),
         );

@@ -14,6 +14,7 @@ import 'widgets/file_list.dart';
 import 'widgets/file_options_sheet.dart';
 import 'widgets/files_tab_switcher.dart';
 import 'widgets/upload_banners.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Ported from the web client's `pages/files` + `files-toolbar`: My files /
 /// Shared tabs, folder navigation, grid/list views, cursor paging, and the
@@ -159,12 +160,20 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
     final controller = ref.read(filesControllerProvider.notifier);
     if (state.selectionMode) return _buildSelectionAppBar(state);
 
+    final scheme = Theme.of(context).colorScheme;
     final folder = state.currentFolder;
+
     final actions = [
       if (!state.readOnly) ...[
         IconButton(
           onPressed: _actions.createFolder,
-          icon: const Icon(Icons.create_new_folder_outlined),
+          icon: SvgPicture.asset(
+            'assets/icons/folder-plus.svg',
+            colorFilter: ColorFilter.mode(
+              scheme.onSurfaceVariant,
+              BlendMode.srcIn,
+            ),
+          ),
           tooltip: 'New folder',
         ),
         IconButton(
@@ -173,13 +182,25 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
               ref.watch(uploadControllerProvider.select((s) => s.uploading))
               ? null
               : _actions.upload,
-          icon: const Icon(Icons.upload_rounded),
+          icon: SvgPicture.asset(
+            'assets/icons/cloud-upload.svg',
+            colorFilter: ColorFilter.mode(
+              scheme.onSurfaceVariant,
+              BlendMode.srcIn,
+            ),
+          ),
           tooltip: 'Upload',
         ),
       ],
       IconButton(
         onPressed: () => showFileOptionsSheet(context),
-        icon: const Icon(Icons.more_vert_rounded),
+        icon: SvgPicture.asset(
+          'assets/icons/dots-vertical.svg',
+          colorFilter: ColorFilter.mode(
+            scheme.onSurfaceVariant,
+            BlendMode.srcIn,
+          ),
+        ),
         tooltip: 'Options',
       ),
     ];
@@ -224,6 +245,7 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
   /// valid for the selection (share / rename need exactly one item; only
   /// download on the read-only Shared tab). Move is mobile-only.
   PreferredSizeWidget _buildSelectionAppBar(FilesState state) {
+    final scheme = Theme.of(context).colorScheme;
     final controller = ref.read(filesControllerProvider.notifier);
     final selected = state.selectedFiles;
     final single = selected.length == 1 ? selected.single : null;
@@ -239,32 +261,59 @@ class _FilesScreenState extends ConsumerState<FilesScreen> {
         if (selected.isNotEmpty)
           IconButton(
             onPressed: () => _actions.download(selected),
-            icon: const Icon(Icons.download_rounded),
+            icon: SvgPicture.asset(
+              'assets/icons/cloud-download.svg',
+              colorFilter: ColorFilter.mode(
+                scheme.onSurfaceVariant,
+                BlendMode.srcIn,
+              ),
+            ),
             tooltip: 'Download',
           ),
         if (!state.readOnly && single != null) ...[
           IconButton(
             onPressed: () => _actions.share(single),
-            icon: const Icon(Icons.share_outlined),
+            icon: SvgPicture.asset(
+              'assets/icons/share-2.svg',
+              colorFilter: ColorFilter.mode(
+                scheme.onSurfaceVariant,
+                BlendMode.srcIn,
+              ),
+            ),
             tooltip: 'Share',
           ),
           IconButton(
             onPressed: () => _actions.rename(single),
-            icon: const Icon(Icons.edit_outlined),
+            icon: SvgPicture.asset(
+              'assets/icons/edit.svg',
+              colorFilter: ColorFilter.mode(
+                scheme.onSurfaceVariant,
+                BlendMode.srcIn,
+              ),
+            ),
             tooltip: 'Rename',
           ),
         ],
         if (!state.readOnly && selected.isNotEmpty) ...[
           IconButton(
             onPressed: _actions.moveSelected,
-            icon: const Icon(Icons.drive_file_move_outline),
+            icon: SvgPicture.asset(
+              'assets/icons/folder-symlink.svg',
+              colorFilter: ColorFilter.mode(
+                scheme.onSurfaceVariant,
+                BlendMode.srcIn,
+              ),
+            ),
             tooltip: 'Move',
           ),
           IconButton(
             onPressed: _actions.deleteSelected,
-            icon: Icon(
-              Icons.delete_outline_rounded,
-              color: Theme.of(context).colorScheme.error,
+            icon: SvgPicture.asset(
+              'assets/icons/trash.svg',
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.error,
+                BlendMode.srcIn,
+              ),
             ),
             tooltip: 'Delete',
           ),

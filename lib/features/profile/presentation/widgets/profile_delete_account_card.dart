@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'delete_account_dialog.dart';
 import 'profile_card.dart';
@@ -55,10 +56,11 @@ class _ProfileDeleteAccountCardState extends State<ProfileDeleteAccountCard> {
             width: double.infinity,
             child: OutlinedButton.icon(
               onPressed: _deleting ? null : _delete,
-              icon: Icon(
-                Icons.delete_forever_outlined,
-                color: scheme.error,
-                size: 18,
+              icon: SvgPicture.asset(
+                'assets/icons/user-x.svg',
+                width: 18,
+                height: 18,
+                colorFilter: ColorFilter.mode(scheme.error, BlendMode.srcIn),
               ),
               label: Text(
                 _deleting ? 'Deleting…' : 'Delete account',
