@@ -49,7 +49,9 @@ class LoginScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                 ],
                 FilledButton(
-                  onPressed: signingIn ? null : () => ref.read(authControllerProvider.notifier).login(),
+                  onPressed: signingIn
+                      ? null
+                      : () => ref.read(authControllerProvider.notifier).login(),
                   child: signingIn
                       ? const SizedBox(
                           width: 20,

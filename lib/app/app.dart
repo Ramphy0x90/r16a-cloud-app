@@ -19,11 +19,13 @@ class R16aCloudApp extends ConsumerWidget {
     final status = ref.watch(authControllerProvider.select((s) => s.status));
 
     // Signing out drops every local cache (listings, thumbnails, opened
-    // files), so the next account never sees them.
+    // files) and the stored user, so the next account never sees them.
     ref.listen(authControllerProvider.select((s) => s.status), (prev, next) {
       if (prev == AuthStatus.authenticated &&
           next == AuthStatus.unauthenticated) {
         ref.read(clearCachesProvider)();
+        ref.read(currentUserStoreProvider).clear();
+        ref.invalidate(currentUserProvider);
       }
     });
 
@@ -32,13 +34,15 @@ class R16aCloudApp extends ConsumerWidget {
     // sign-in (or while `/user/me` is loading), so fall back to the system
     // setting.
     final themeMode = status == AuthStatus.authenticated
-        ? ref.watch(currentUserProvider).maybeWhen(
-              data: (user) => switch (user.preferences.theme) {
-                AppThemePreference.light => ThemeMode.light,
-                AppThemePreference.dark => ThemeMode.dark,
-              },
-              orElse: () => ThemeMode.system,
-            )
+        ? ref
+              .watch(currentUserProvider)
+              .maybeWhen(
+                data: (user) => switch (user.preferences.theme) {
+                  AppThemePreference.light => ThemeMode.light,
+                  AppThemePreference.dark => ThemeMode.dark,
+                },
+                orElse: () => ThemeMode.system,
+              )
         : ThemeMode.system;
 
     return MaterialApp(

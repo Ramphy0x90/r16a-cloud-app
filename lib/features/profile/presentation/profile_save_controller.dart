@@ -28,13 +28,18 @@ class ProfileSaveController extends Notifier<ProfileSaveState> {
 
   void schedule(UserPreferences preferences) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () => _save(preferences));
+    _debounce = Timer(
+      const Duration(milliseconds: 300),
+      () => _save(preferences),
+    );
   }
 
   Future<void> _save(UserPreferences preferences) async {
     state = const ProfileSaveState(saving: true);
     try {
-      await ref.read(currentUserProvider.notifier).updatePreferences(preferences);
+      await ref
+          .read(currentUserProvider.notifier)
+          .updatePreferences(preferences);
       state = const ProfileSaveState();
     } catch (_) {
       state = const ProfileSaveState(
@@ -45,4 +50,6 @@ class ProfileSaveController extends Notifier<ProfileSaveState> {
 }
 
 final profileSaveControllerProvider =
-    NotifierProvider<ProfileSaveController, ProfileSaveState>(ProfileSaveController.new);
+    NotifierProvider<ProfileSaveController, ProfileSaveState>(
+      ProfileSaveController.new,
+    );

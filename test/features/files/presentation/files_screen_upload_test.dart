@@ -86,7 +86,7 @@ void main() {
     expect(find.text('Uploading'), findsOneWidget);
     expect(find.byType(LinearProgressIndicator), findsOneWidget);
     final button = find.ancestor(
-      of: find.byIcon(Icons.upload_rounded),
+      of: find.byTooltip('Upload'),
       matching: find.byType(IconButton),
     );
     expect(tester.widget<IconButton>(button).onPressed, isNull);

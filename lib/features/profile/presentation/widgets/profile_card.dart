@@ -42,7 +42,10 @@ class ProfileSectionHeader extends StatelessWidget {
         Text(title, style: Theme.of(context).textTheme.titleMedium),
         if (subtitle != null) ...[
           const SizedBox(height: 2),
-          Text(subtitle!, style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant)),
+          Text(
+            subtitle!,
+            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+          ),
         ],
       ],
     );

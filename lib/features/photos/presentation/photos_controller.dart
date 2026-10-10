@@ -25,11 +25,11 @@ class PhotosController extends Notifier<PhotosState> {
   PhotosState build() {
     Future.microtask(() => _load().catchError((_) {}));
     // Uploads / deletes elsewhere in the app: rebuild the timeline quietly,
-    // once per burst of changes.
+    // once per burst of changes, keeping years whose count didn't change.
     ref.listen(mediaRevisionProvider, (_, _) {
       _refreshDebounce?.cancel();
       _refreshDebounce = Timer(refreshDebounce, () {
-        _load(silent: true).catchError((_) {});
+        _load(silent: true, keepUnchanged: true).catchError((_) {});
       });
     });
     ref.onDispose(() => _refreshDebounce?.cancel());
@@ -72,7 +72,9 @@ class PhotosController extends Notifier<PhotosState> {
     }
   }
 
-  Future<void> _load({bool silent = false}) async {
+  /// [keepUnchanged]: a year whose own count is the same keeps the photos
+  /// already loaded instead of going back to placeholders.
+  Future<void> _load({bool silent = false, bool keepUnchanged = false}) async {
     final gen = ++_generation;
     if (!silent) state = const PhotosState();
     try {
@@ -84,7 +86,14 @@ class PhotosController extends Notifier<PhotosState> {
         api.getSharedMedia().catchError((_) => <FileItem>[]),
       ).wait;
       if (!ref.mounted || gen != _generation) return;
-      state = PhotosState(loading: false, sections: _sections(years, shared));
+      state = PhotosState(
+        loading: false,
+        sections: _sections(
+          years,
+          shared,
+          previous: keepUnchanged ? state.sections : const [],
+        ),
+      );
     } catch (e) {
       if (!ref.mounted || gen != _generation) return;
       if (silent) rethrow;
@@ -93,11 +102,13 @@ class PhotosController extends Notifier<PhotosState> {
   }
 
   /// Years from both sources, newest first. Shared media is filed under
-  /// the UTC year of `takenAt ?? createdAt`, like the web.
+  /// the UTC year of `takenAt ?? createdAt`, like the web. A year in
+  /// [previous] with the same own count keeps its loaded pages.
   static List<PhotoYearSection> _sections(
     List<PhotoYear> years,
-    List<FileItem> shared,
-  ) {
+    List<FileItem> shared, {
+    List<PhotoYearSection> previous = const [],
+  }) {
     final sharedByYear = <int, List<FileItem>>{};
     for (final file in shared) {
       final year = (file.takenAt ?? file.createdAt).toUtc().year;
@@ -106,17 +117,33 @@ class PhotosController extends Notifier<PhotosState> {
     final ownByYear = {for (final y in years) y.year: y.count};
     final allYears = {...ownByYear.keys, ...sharedByYear.keys}.toList()
       ..sort((a, b) => b.compareTo(a));
+    final kept = {
+      for (final s in previous)
+        if (s.started && s.ownCount > 0 && s.ownCount == ownByYear[s.year])
+          s.year: s,
+    };
 
     return [
       for (final year in allYears)
-        PhotoYearSection(
-          year: year,
-          ownCount: ownByYear[year] ?? 0,
-          shared: sharedByYear[year] ?? const [],
-          // No own photos this year: nothing to load.
-          started: (ownByYear[year] ?? 0) == 0,
-          hasMore: (ownByYear[year] ?? 0) > 0,
-        ),
+        if (kept[year] case final old?)
+          PhotoYearSection(
+            year: year,
+            ownCount: old.ownCount,
+            own: old.own,
+            shared: sharedByYear[year] ?? const [],
+            cursor: old.cursor,
+            hasMore: old.hasMore,
+            started: true,
+          )
+        else
+          PhotoYearSection(
+            year: year,
+            ownCount: ownByYear[year] ?? 0,
+            shared: sharedByYear[year] ?? const [],
+            // No own photos this year: nothing to load.
+            started: (ownByYear[year] ?? 0) == 0,
+            hasMore: (ownByYear[year] ?? 0) > 0,
+          ),
     ];
   }
 

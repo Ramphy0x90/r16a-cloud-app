@@ -5,11 +5,12 @@ enum AppThemePreference {
   dark;
 
   String get label => switch (this) {
-        AppThemePreference.light => 'Light',
-        AppThemePreference.dark => 'Dark',
-      };
+    AppThemePreference.light => 'Light',
+    AppThemePreference.dark => 'Dark',
+  };
 
-  static AppThemePreference fromJson(String value) => switch (value.toLowerCase()) {
+  static AppThemePreference fromJson(String value) =>
+      switch (value.toLowerCase()) {
         'dark' => AppThemePreference.dark,
         _ => AppThemePreference.light,
       };
@@ -22,11 +23,12 @@ enum DefaultFileView {
   list;
 
   String get label => switch (this) {
-        DefaultFileView.grid => 'Grid',
-        DefaultFileView.list => 'List',
-      };
+    DefaultFileView.grid => 'Grid',
+    DefaultFileView.list => 'List',
+  };
 
-  static DefaultFileView fromJson(String value) => switch (value.toLowerCase()) {
+  static DefaultFileView fromJson(String value) =>
+      switch (value.toLowerCase()) {
         'list' => DefaultFileView.list,
         _ => DefaultFileView.grid,
       };
@@ -35,18 +37,23 @@ enum DefaultFileView {
 /// Mirrors the web client's `UserPreferences` (`types/user.ts`) — nested
 /// under `UserResponse.preferences` on the backend.
 class UserPreferences {
-  const UserPreferences({
-    required this.theme,
-    required this.defaultViewMode,
-  });
+  const UserPreferences({required this.theme, required this.defaultViewMode});
 
   final AppThemePreference theme;
   final DefaultFileView defaultViewMode;
 
-  factory UserPreferences.fromJson(Map<String, dynamic> json) => UserPreferences(
+  factory UserPreferences.fromJson(Map<String, dynamic> json) =>
+      UserPreferences(
         theme: AppThemePreference.fromJson(json['preferredTheme'] as String),
-        defaultViewMode: DefaultFileView.fromJson(json['defaultViewMode'] as String),
+        defaultViewMode: DefaultFileView.fromJson(
+          json['defaultViewMode'] as String,
+        ),
       );
+
+  Map<String, dynamic> toJson() => {
+    'preferredTheme': theme.name,
+    'defaultViewMode': defaultViewMode.name,
+  };
 
   UserPreferences copyWith({
     AppThemePreference? theme,

@@ -19,18 +19,29 @@ class CurrentUser {
   final UserPreferences preferences;
 
   factory CurrentUser.fromJson(Map<String, dynamic> json) => CurrentUser(
-        id: json['id'] as String,
-        username: json['username'] as String,
-        displayName: json['displayName'] as String,
-        email: json['email'] as String,
-        preferences: UserPreferences.fromJson(json['preferences'] as Map<String, dynamic>),
-      );
+    id: json['id'] as String,
+    username: json['username'] as String,
+    displayName: json['displayName'] as String,
+    email: json['email'] as String,
+    preferences: UserPreferences.fromJson(
+      json['preferences'] as Map<String, dynamic>,
+    ),
+  );
+
+  /// Same shape as `UserResponse`, so [CurrentUser.fromJson] reads it back.
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'username': username,
+    'displayName': displayName,
+    'email': email,
+    'preferences': preferences.toJson(),
+  };
 
   CurrentUser copyWith({UserPreferences? preferences}) => CurrentUser(
-        id: id,
-        username: username,
-        displayName: displayName,
-        email: email,
-        preferences: preferences ?? this.preferences,
-      );
+    id: id,
+    username: username,
+    displayName: displayName,
+    email: email,
+    preferences: preferences ?? this.preferences,
+  );
 }

@@ -7,24 +7,24 @@ class AppTheme {
   const AppTheme._();
 
   static ThemeData get light => _build(
-        brightness: Brightness.light,
-        primary: AppColors.lightPrimary,
-        background: AppColors.lightBackground,
-        foreground: AppColors.lightForeground,
-        card: AppColors.lightCard,
-        accent: AppColors.lightAccent,
-        onAccent: AppColors.lightAccentForeground,
-      );
+    brightness: Brightness.light,
+    primary: AppColors.lightPrimary,
+    background: AppColors.lightBackground,
+    foreground: AppColors.lightForeground,
+    card: AppColors.lightCard,
+    accent: AppColors.lightAccent,
+    onAccent: AppColors.lightAccentForeground,
+  );
 
   static ThemeData get dark => _build(
-        brightness: Brightness.dark,
-        primary: AppColors.darkPrimary,
-        background: AppColors.darkBackground,
-        foreground: AppColors.darkForeground,
-        card: AppColors.darkCard,
-        accent: AppColors.darkAccent,
-        onAccent: AppColors.darkAccentForeground,
-      );
+    brightness: Brightness.dark,
+    primary: AppColors.darkPrimary,
+    background: AppColors.darkBackground,
+    foreground: AppColors.darkForeground,
+    card: AppColors.darkCard,
+    accent: AppColors.darkAccent,
+    onAccent: AppColors.darkAccentForeground,
+  );
 
   static ThemeData _build({
     required Brightness brightness,
@@ -35,18 +35,19 @@ class AppTheme {
     required Color accent,
     required Color onAccent,
   }) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: primary,
-      brightness: brightness,
-    ).copyWith(
-      primary: primary,
-      surface: background,
-      onSurface: foreground,
-      surfaceContainer: card,
-      surfaceContainerHighest: accent,
-      onSurfaceVariant: onAccent,
-      error: AppColors.alert,
-    );
+    final scheme =
+        ColorScheme.fromSeed(
+          seedColor: primary,
+          brightness: brightness,
+        ).copyWith(
+          primary: primary,
+          surface: background,
+          onSurface: foreground,
+          surfaceContainer: card,
+          surfaceContainerHighest: accent,
+          onSurfaceVariant: onAccent,
+          error: AppColors.alert,
+        );
 
     return ThemeData(
       useMaterial3: true,

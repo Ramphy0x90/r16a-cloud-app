@@ -94,9 +94,16 @@ class _SelectRow<T> extends StatelessWidget {
           child: Row(
             children: [
               Expanded(child: Text(label)),
-              Text(valueLabel, style: TextStyle(color: scheme.onSurfaceVariant)),
+              Text(
+                valueLabel,
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
               const SizedBox(width: 4),
-              Icon(Icons.chevron_right_rounded, size: 20, color: scheme.onSurfaceVariant),
+              Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: scheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),

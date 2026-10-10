@@ -174,4 +174,56 @@ void main() {
 
     expect(api.yearsCalls, 2);
   });
+
+  test('media changes keep loaded years whose count is unchanged', () async {
+    api = FakePhotosApi(
+      years: const [
+        PhotoYear(year: 2025, count: 1),
+        PhotoYear(year: 2024, count: 1),
+      ],
+    );
+    await start();
+    controller().loadMore(2025);
+    controller().loadMore(2024);
+    await _settle();
+    api.calls[0].response.complete(
+      photoPage([fakePhoto('a', DateTime.utc(2025))]),
+    );
+    api.calls[1].response.complete(
+      photoPage([fakePhoto('b', DateTime.utc(2024))]),
+    );
+    await _settle();
+
+    // An upload lands in 2024 only.
+    api.years = const [
+      PhotoYear(year: 2025, count: 1),
+      PhotoYear(year: 2024, count: 2),
+    ];
+    container.read(mediaRevisionProvider.notifier).bump();
+    await Future<void>.delayed(
+      PhotosController.refreshDebounce + const Duration(milliseconds: 100),
+    );
+    await _settle();
+
+    expect(section(2025).own.map((f) => f.id), ['a']);
+    expect(section(2025).canLoadMore, isFalse);
+    expect(section(2024).own, isEmpty);
+    expect(section(2024).pendingOwn, 2);
+  });
+
+  test('pull-to-refresh reloads every year', () async {
+    api = FakePhotosApi(years: const [PhotoYear(year: 2025, count: 1)]);
+    await start();
+    controller().loadMore(2025);
+    await _settle();
+    api.calls.single.response.complete(
+      photoPage([fakePhoto('a', DateTime.utc(2025))]),
+    );
+    await _settle();
+
+    await controller().refresh();
+
+    expect(section(2025).own, isEmpty);
+    expect(section(2025).canLoadMore, isTrue);
+  });
 }

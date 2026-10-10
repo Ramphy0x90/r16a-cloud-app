@@ -46,7 +46,10 @@ class ProfileIdentityCard extends StatelessWidget {
                   children: [
                     Text(
                       displayName,
-                      style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -83,7 +86,10 @@ class _ReadOnlyField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant)),
+        Text(
+          label,
+          style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+        ),
         const SizedBox(height: 4),
         Container(
           width: double.infinity,

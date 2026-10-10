@@ -6,6 +6,8 @@ import 'app/app.dart';
 import 'core/cache/clear_caches.dart';
 import 'core/config/env.dart';
 import 'core/logging/app_logger.dart';
+import 'core/session/current_user_store.dart';
+import 'core/session/session_providers.dart';
 import 'features/files/data/listing_store.dart';
 import 'features/files/presentation/files_providers.dart';
 
@@ -18,6 +20,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         listingStoreProvider.overrideWithValue(HiveListingStore()),
+        currentUserStoreProvider.overrideWithValue(HiveCurrentUserStore()),
         // Core caches plus the Files listings (memory + Hive).
         clearCachesProvider.overrideWith(
           (ref) => () async {

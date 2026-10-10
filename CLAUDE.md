@@ -101,11 +101,13 @@ The plan is partly ahead of / different from the code. **Current code wins**; th
 - Photos: done (plan Phase 8 step 18): `PhotosApi` (`/photos/years`, `/photos`, shared media via
   `/fs/shared-with-me`), `PhotosController` (year sections, lazy pages), grid with placeholder tiles that
   request the next page when laid out (keyed by loaded count so on-screen ones re-ask). Viewer has
-  Download + "Share via…" (step 19). Refreshes itself (debounced) on `mediaRevisionProvider` bumps.
+  Download + "Share via…" (step 19). Refreshes itself (debounced) on `mediaRevisionProvider` bumps, keeping
+  loaded years whose count didn't change (pull-to-refresh reloads all).
 - Phase 9 (partial): user-visible name **Domovoi** (internal name stays R16a Cloud); `AppLogger`
   (core/logging) catches all errors, `AppLogger.reporter` is the hook for a crash service; offline
   detection from real traffic (`NetworkStatusInterceptor`) + banner above the dock, Files serves stored
-  listings of any age while offline; Profile "Clear cache" (`clearCachesProvider`, extended in
+  listings of any age while offline; the signed-in user is stored too (`CurrentUserStore`, Hive, cleared on
+  sign-out) so an offline cold start still opens them; Profile "Clear cache" (`clearCachesProvider`, extended in
   `main.dart`, also run on sign-out); shared `StatusMessage` for empty/error states; haptics on
   selection/delete; hero thumbnail → viewer (`filesHeroPrefix` / `photosHeroPrefix`).
   Launcher icon + native splash generated from the logo SVGs (see Commands).

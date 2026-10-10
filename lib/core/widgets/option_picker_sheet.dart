@@ -29,7 +29,10 @@ Future<T?> showOptionPicker<T>({
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
           ),
           for (final option in options)
