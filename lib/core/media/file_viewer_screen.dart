@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app/theme/app_colors.dart';
 import '../model/file_item.dart';
@@ -49,6 +50,7 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
   Widget build(BuildContext context) {
     final api = ref.watch(mediaApiProvider);
     final thumbnails = ref.watch(thumbnailCacheProvider);
+    final scheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       backgroundColor: AppColors.darkBackground,
@@ -68,19 +70,37 @@ class _FileViewerScreenState extends ConsumerState<FileViewerScreen> {
         ),
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close_rounded),
+          icon: SvgPicture.asset(
+            'assets/icons/x.svg',
+            colorFilter: ColorFilter.mode(
+              scheme.onSurfaceVariant,
+              BlendMode.srcIn,
+            ),
+          ),
           tooltip: 'Close',
         ),
         actions: [
           IconButton(
             onPressed: () => shareMediaFile(context, ref, widget.files[_index]),
-            icon: const Icon(Icons.ios_share_rounded),
+            icon: SvgPicture.asset(
+              'assets/icons/share.svg',
+              colorFilter: ColorFilter.mode(
+                scheme.onSurfaceVariant,
+                BlendMode.srcIn,
+              ),
+            ),
             tooltip: 'Share via…',
           ),
           IconButton(
             onPressed: () =>
                 saveMediaFiles(context, ref, [widget.files[_index]]),
-            icon: const Icon(Icons.download_rounded),
+            icon: SvgPicture.asset(
+              'assets/icons/cloud-download.svg',
+              colorFilter: ColorFilter.mode(
+                scheme.onSurfaceVariant,
+                BlendMode.srcIn,
+              ),
+            ),
             tooltip: 'Download',
           ),
         ],
